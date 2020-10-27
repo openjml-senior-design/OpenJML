@@ -442,20 +442,6 @@ public class escStringsTest extends EscBase {
                 );
     }
     
-    /** PASSED */
-    @Test
-    public void testIndexOf() {
-    	helperTCX(""
-    			+ "	/*@"
-    			+ "		requires s == \"abcdefg\";\n"
-    			+ "		ensures \\result == 0;\n"
-    			+ "	@*/"
-                +"  public int m1(String s) {\n"
-                +"       return s.indexOf('a');"
-                +"  }\n"
-                );
-    }
-    
     /** FAILED */
     @Test
     public void testLastIndexOf() {
@@ -531,6 +517,740 @@ public class escStringsTest extends EscBase {
                 +"  public byte [] m1(String s) {\n"
                 +"       return s.getBytes();"
                 +"  }\n"
+                );
+    }
+
+	// All test case descriptions can be found in the Design Documentation
+    /** Test that the length of two equal strings is the same */
+    @Test
+    public void testStringLength1() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +" import org.jmlspecs.annotation.*; \n"
+                +"@NonNullByDefault public class TestJava { \n"   
+                +"  public TestJava t;\n"
+                +"  public int a;\n"
+                +"  public static int b;\n"                
+                +"  public void m1(String s) {\n"
+                +"       String ss = s;\n"
+                +"       //@ assert s != null;\n"
+                +"       int lengthS = s.length();\n"
+                +"       int lengthSs = ss.length();\n"
+                +"       //@ assert lengthS == lengthSs;\n"
+                +"  }\n"
+                
+                +" public TestJava() { t = new TestJava(); }\n"
+                +"}"
+                );
+    }
+
+    
+    /** This String declaration and assignment */
+    @Test
+    public void testStringEndsWith() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +" import org.jmlspecs.annotation.*; \n"
+                +"@NonNullByDefault public class TestJava { \n"
+                
+                +"  public TestJava t;\n"
+                +"  public int a;\n"
+                +"  public static int b;\n"
+                
+                +"  public void m1(String s) {\n"
+                +"       String s1 = \"abc\";\n"
+                +"       boolean condition = s1.endsWith(\"c\");;\n"
+                +"       //@ assert condition == false;\n"
+                +"  }\n"
+                
+                +" public TestJava() { t = new TestJava(); }\n"
+                +"}"
+                );
+    }
+
+    @Test
+    public void testStringIsEmpty1() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +" import org.jmlspecs.annotation.*; \n"
+                +"@NonNullByDefault public class TestJava { \n"
+                +"  public TestJava t;\n"
+                +"  public int a;\n"
+                +"  public static int b;\n"
+                +"  //@ requires s.length() == 0; \n"
+                +"  public void m1(String s) {\n"
+                +"       boolean condition = s.isEmpty();\n"
+                +"       //@ assert condition == true;\n"
+                +"  }\n"
+                
+                +" public TestJava() { t = new TestJava(); }\n"
+                +"}"
+                );
+    }    
+    
+    @Test
+    public void testStringIsEmpty2() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +" import org.jmlspecs.annotation.*; \n"
+                +"@NonNullByDefault public class TestJava { \n"
+                +"  public TestJava t;\n"
+                +"  public int a;\n"
+                +"  public static int b;\n"
+                +"  //@ requires s.length() > 0; \n"
+                +"  public void m1(String s) {\n"
+                +"       boolean condition = s.isEmpty();\n"
+                +"       //@ assert condition == false;\n"
+                +"  }\n"
+                
+                +" public TestJava() { t = new TestJava(); }\n"
+                +"}"
+                );
+    }  
+    
+    /** This String declaration and assignment */
+    @Test
+    public void testCharAt2() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +" import org.jmlspecs.annotation.*; \n"
+                +"@NonNullByDefault public class TestJava { \n"
+                
+                +"  public TestJava t;\n"
+                +"  public int a;\n"
+                +"  public static int b;\n"
+                +"  //@ requires (s.length() > 0) && (ss.length() > 0); \n"
+                +"  public void m1(String s, String ss) {\n"
+                +"       int length = ss.length();\n"
+                +"       String sss = ss + s;\n"
+                +"       //@ assert sss.charAt(length) == s.charAt(0);\n"
+                +"  }\n"
+                
+                +"  //@ requires (s.length() > 0); \n"
+                +"  public void m2(String s) {\n"
+                +"       String ss = s;\n"
+                +"       //@ assert ss.charAt(0) == s.charAt(0);\n"
+                +"  }\n"
+                
+                +" public TestJava() { t = new TestJava(); }\n"
+                +"}"
+                );
+    }
+
+    @Test
+    public void testContentEqualsSB1() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +" import org.jmlspecs.annotation.*; \n"
+                +"@NonNullByDefault public class TestJava { \n"
+                +"  public TestJava t;\n"
+                +"  public int a;\n"
+                +"  public static int b;\n"
+                +"  public void m1(String s) {\n"
+                +"       StringBuffer sb = new StringBuffer(s);"
+                +"		 boolean condition = s.contentEquals(sb);\n"
+                +"       //@ assert condition == true;\n"
+                +"  }\n"
+                
+                +" public TestJava() { t = new TestJava(); }\n"
+                +"}"
+                );
+    }
+    
+    @Test
+    public void testContentEqualsSB2() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +" import org.jmlspecs.annotation.*; \n"
+                +"@NonNullByDefault public class TestJava { \n"
+                +"  public TestJava t;\n"
+                +"  public int a;\n"
+                +"  public static int b;\n"
+                +"  //@ requires (s != ss); \n"
+                +"  public void m1(String s, String ss) {\n"
+                +"       StringBuffer sb = new StringBuffer(ss);\n"
+                +"		 boolean condition = s.contentEquals(sb);\n"
+                +"       //@ assert condition == false;\n"
+                +"  }\n"
+                
+                +" public TestJava() { t = new TestJava(); }\n"
+                +"}"
+                );
+    }
+
+    @Test
+    public void testCompareTo1() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +" import org.jmlspecs.annotation.*; \n"
+                +"@NonNullByDefault public class TestJava { \n"
+                +"  public TestJava t;\n"
+                +"  public int a;\n"
+                +"  public static int b;\n"
+                +"  public void m1(String s) {\n"
+                +"       String ss = s;\n"
+                +"       int condition = ss.compareTo(s);\n"
+                +"       int condition2 = s.compareTo(ss);\n"
+                +"       //@ assert condition == condition2;\n"
+                +"  }\n"
+                +" public TestJava() { t = new TestJava(); }\n"
+                +"}"
+                );
+    }  
+    
+    @Test
+    public void testCompareTo2() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +" import org.jmlspecs.annotation.*; \n"
+                +"@NonNullByDefault public class TestJava { \n"
+                +"  public TestJava t;\n"
+                +"  public int a;\n"
+                +"  public static int b;\n"
+                +"  public void m1(String s) {\n"
+                +"       String ss = s;\n"
+                +"       int condition = ss.compareTo(s);\n"
+                +"       //@ assert condition == 0;\n"
+                +"  }\n"
+                +" public TestJava() { t = new TestJava(); }\n"
+                +"}"
+                );
+    }  
+    
+    @Test
+    public void testCompareTo3() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +" import org.jmlspecs.annotation.*; \n"
+                +"@NonNullByDefault public class TestJava { \n"
+                +"  public TestJava t;\n"
+                +"  public int a;\n"
+                +"  public static int b;\n"
+                +"  //@ requires (s.length() == ss.length());\n"
+                +"  public void m1(String s, String ss) {\n"
+                +"       int i = 0;\n"
+                +"       int condition = 0;\n"
+                +"       //@ maintaining (condition == 0) <==> (\\forall int j; 0 <= j && j < i; s.charAt(j) == ss.charAt(j));\r\n"
+                +"		 //@ maintaining 0 <= i && i <= s.length();\r\n"
+                +"       for (i = 0; i < s.length(); i++){\n"
+                +"            if (s.charAt(i) != ss.charAt(i)){\n"
+                +"                 condition = s.charAt(i)-ss.charAt(i);\n"
+                +"                 break;\n"
+                +"            }\n"
+                +"       }\n"
+                +"       int condition2 = s.compareTo(ss);\n"
+                +"       //@ assert condition == condition2;\n"
+                +"  }\n"
+                +" public TestJava() { t = new TestJava(); }\n"
+                +"}"
+                );
+    }
+
+    @Test
+    public void testCompareTo4() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +" import org.jmlspecs.annotation.*; \n"
+                +"@NonNullByDefault public class TestJava { \n"
+                +"  public TestJava t;\n"
+                +"  public int a;\n"
+                +"  public static int b;\n"
+                +"  //@ requires s.length() > 0;\n"
+                +"  public void m1(String s) {\n"
+                +"       String ss = s + s;\n"
+                +"       int lengthDiff = s.length() - ss.length();\n"
+                +"       int condition = s.compareTo(ss);\n"
+                +"       //@ assert condition == lengthDiff;\n"
+                +"  }\n"
+                +" public TestJava() { t = new TestJava(); }\n"
+                +"}"
+                );
+    }   
+    
+    /** This String declaration and assignment */
+    @Test
+    public void testCharAt() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +" import org.jmlspecs.annotation.*; \n"
+                +"@NonNullByDefault public class TestJava { \n"
+                
+                +"  public TestJava t;\n"
+                +"  public int a;\n"
+                +"  public static int b;\n"
+                
+                +"  //@ requires (s.length() > 0); \n"
+                +"  public void m2(String s) {\n"
+                +"       String ss = s;\n"
+                +"       //@ assert ss.charAt(0) == s.charAt(0);\n"
+                +"  }\n"
+                
+                +" public TestJava() { t = new TestJava(); }\n"
+                +"}"
+                );
+    }
+
+    @Test
+    public void testRegionMatches1() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +" import org.jmlspecs.annotation.*; \n"
+                +"@NonNullByDefault public class TestJava { \n"
+                +"  public TestJava t;\n"
+                +"  public int a;\n"
+                +"  public static int b;\n"
+                +"  public void m1(String s) {\n"
+                +"       //@ assume s.length() + s.length() <= Integer.MAX_VALUE;\n"
+                +"       String ss = s + s;\n"
+                +"       int len = s.length();\n"
+                +"       boolean condition = ss.regionMatches(len, s, 0, len);\n"
+                +"       //@ assert condition == true;\n"
+                +"  }\n"
+                +" public TestJava() { t = new TestJava(); }\n"
+                +"}"
+                );
+        
+        
+    }
+
+    //broken
+    @Test
+    public void testRegionMatches2() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +" import org.jmlspecs.annotation.*; \n"
+                +"@NonNullByDefault public class TestJava { \n"
+                +"  public TestJava t;\n"
+                +"  public int a;\n"
+                +"  public static int b;\n"
+                +"  //@ requires s.length() == 0;\n"
+                +"  public void m1(String s) {\n"
+                +"       boolean condition = s.regionMatches(0, s, 0, 0);\n"
+                +"       //@ assert condition == true;\n"
+                +"  }\n"
+                +" public TestJava() { t = new TestJava(); }\n"
+                +"}"
+                );
+    }
+    
+    //broken
+    @Test
+    public void testStartsWithIndex1() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +" import org.jmlspecs.annotation.*; \n"
+                +"@NonNullByDefault public class TestJava { \n"
+                +"  public TestJava t;\n"
+                +"  public int a;\n"
+                +"  public static int b;\n"
+                +"  public void m1(String s) {\n"
+                +"       //@ assume s.length() + s.length() <= Integer.MAX_VALUE;\n"
+                +"       String ss = s + s;\n"
+                +"       int len = s.length();\n"
+                +"       boolean condition = ss.startsWith(s, len);\n"
+                +"       //@ assert condition == true;\n"
+                +"  }\n"
+                +" public TestJava() { t = new TestJava(); }\n"
+                +"}"
+                );
+    }
+
+    @Test
+    public void testStartsWithIndex2() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +" import org.jmlspecs.annotation.*; \n"
+                +"@NonNullByDefault public class TestJava { \n"
+                +"  public TestJava t;\n"
+                +"  public int a;\n"
+                +"  public static int b;\n"
+                +"  public void m1(String s) {\n"
+                +"       //@ assume s.length() + s.length() <= Integer.MAX_VALUE;\n"
+                +"       String ss = s + s;\n"
+                +"       int len = s.length();\n"
+                +"       boolean condition = ss.startsWith(s, 0);\n"
+                +"       //@ assert condition == true;\n"
+                +"  }\n"
+                +" public TestJava() { t = new TestJava(); }\n"
+                +"}"
+                );
+    }
+    
+    @Test
+    public void testEndsWith1() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +" import org.jmlspecs.annotation.*; \n"
+                +"@NonNullByDefault public class TestJava { \n"
+                +"  public TestJava t;\n"
+                +"  public int a;\n"
+                +"  public static int b;\n"
+                +"  public void m1(String s) {\n"
+                +"       //@ assume s.length() + s.length() <= Integer.MAX_VALUE;\n"
+                +"       String ss = s + s;\n"
+                +"       boolean condition = ss.endsWith(s);\n"
+                +"       //@ assert condition == true;\n"
+                +"  }\n"
+                +" public TestJava() { t = new TestJava(); }\n"
+                +"}"
+                );
+    } 
+
+    //hyper busted
+    @Test
+    public void testEndsWith2() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +" import org.jmlspecs.annotation.*; \n"
+                +"@NonNullByDefault public class TestJava { \n"
+                +"  public TestJava t;\n"
+                +"  public int a;\n"
+                +"  public static int b;\n"
+                +"  public void m1(String s) {\n"
+                +"       boolean condition = s.endsWith(s);\n"
+                +"       //@ assert condition == true;\n"
+                +"  }\n"
+                +" public TestJava() { t = new TestJava(); }\n"
+                +"}"
+                );
+    }
+
+    //Broken again
+    @Test
+    public void testIndexOfFromIndex2() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +" import org.jmlspecs.annotation.*; \n"
+                +"@NonNullByDefault public class TestJava { \n"
+                +"  public TestJava t;\n"
+                +"  public int a;\n"
+                +"  public static int b;\n"
+                +"  //@ requires s.length() > 0;\n"
+                +"  public void m1(String s) {\n"
+                +"       char c = s.charAt(0);\n"
+                +"       String ss = s+s;\n"
+                +"       int index = ss.indexOf(c, s.length());\n"
+                +"       //@ assert index == s.length();\n"
+                +"  }\n"
+                +" public TestJava() { t = new TestJava(); }\n"
+                +"}"
+                );
+    }
+
+    @Test
+    public void testLastIndexOfFromIndexCh() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +" import org.jmlspecs.annotation.*; \n"
+                +"@NonNullByDefault public class TestJava { \n"
+                +"  public TestJava t;\n"
+                +"  public int a;\n"
+                +"  public static int b;\n"
+                +"  //@ requires s.length() == 1;\n"
+                +"  public void m1(String s) {\n"
+                +"       String ss = s+s;\n"
+                +"       int index = ss.lastIndexOf(s, s.length()*2-1);\n"
+                +"       //@ assert index == s.length();\n"
+                +"  }\n"
+                +" public TestJava() { t = new TestJava(); }\n"
+                +"}"
+                );
+    }  
+    
+    
+    @Test
+    public void testConcat() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +" import org.jmlspecs.annotation.*; \n"
+                +"@NonNullByDefault public class TestJava { \n"
+                +"  public TestJava t;\n"
+                +"  public int a;\n"
+                +"  public static int b;\n"
+                +"  public void m1(String s, String ss) {\n"
+                +"       //@ assert s.concat(ss).equals(s + ss);\n"
+                +"  }\n"
+                +" public TestJava() { t = new TestJava(); }\n"
+                +"}"
+                );
+    }  
+    
+    @Test
+    public void testLastIndexOfFromIndexStr() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +" import org.jmlspecs.annotation.*; \n"
+                +"@NonNullByDefault public class TestJava { \n"
+                +"  public TestJava t;\n"
+                +"  public int a;\n"
+                +"  public static int b;\n"
+                +"  //@ requires s.length() == 1;\n"
+                +"  public void m1(String s) {\n"
+                +"       String ss = s+s;\n"
+                +"       int index = ss.lastIndexOf(s, 0);\n"
+                +"       //@ assert index == s.length();\n"
+                +"  }\n"
+                +" public TestJava() { t = new TestJava(); }\n"
+                +"}"
+                );
+    } 
+    
+    @Test
+    public void testIndexOfFromIndex1() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +" import org.jmlspecs.annotation.*; \n"
+                +"@NonNullByDefault public class TestJava { \n"
+                +"  public TestJava t;\n"
+                +"  public int a;\n"
+                +"  public static int b;\n"
+                +"  //@ requires s.length() > 0;\n"
+                +"  public void m1(String s) {\n"
+                +"       char c = s.charAt(0);\n"
+                +"       int index = s.indexOf(c, 0);\n"
+                +"       //@ assert index == 0;\n"
+                +"  }\n"
+                +" public TestJava() { t = new TestJava(); }\n"
+                +"}"
+                );
+    }
+
+    @Test
+    public void testToLowerCase() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +" import org.jmlspecs.annotation.*; \n"
+                +"@NonNullByDefault public class TestJava { \n"
+                +"  public TestJava t;\n"
+                +"  public int a;\n"
+                +"  public static int b;\n"
+                +"  //@ requires s.length() == 0;\n"
+                +"  public void m1(String s) {\n"
+                +"        String ss = s.toLowerCase();\n"
+                +"        boolean condition = true;"
+                +"        for (int i = 0; i < ss.length(); i++){\n"
+                +"             char c = ss.charAt(i);\n"
+                +"             condition = condition && c.isLowerCase();\n"
+                +"        }\n"
+                +"        //@ assert condition == true;\n"
+                +"  }\n"
+                +" public TestJava() { t = new TestJava(); }\n"
+                +"}"
+                );
+    }
+    
+    @Test
+    public void testToUpperCase() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +" import org.jmlspecs.annotation.*; \n"
+                +"@NonNullByDefault public class TestJava { \n"
+                +"  public TestJava t;\n"
+                +"  public int a;\n"
+                +"  public static int b;\n"
+                +"  //@ requires s.length() == 0;\n"
+                +"  public void m1(String s) {\n"
+                +"        String ss = s.toUpperCase();\n"
+                +"        boolean condition = true;"
+                +"        int i = 0;\n"
+                +"        for (i = 0; i < ss.length(); i++){\n"
+                +"             char c = ss.charAt(i);\n"
+                +"             condition = condition && c.isUpperCase();\n"
+                +"        }\n"
+                +"        //@ assert condition == true;\n"
+                +"  }\n"
+                +" public TestJava() { t = new TestJava(); }\n"
+                +"}"
+                );
+    }
+
+    @Test
+    public void testToString() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +" import org.jmlspecs.annotation.*; \n"
+                +"@NonNullByDefault public class TestJava { \n"
+                +"  public TestJava t;\n"
+                +"  public int a;\n"
+                +"  public static int b;\n"
+                +"  public void m1(String s) {\n"
+                +"        //@ assert s == s.toString();\n"
+                +"  }\n"
+                +" public TestJava() { t = new TestJava(); }\n"
+                +"}"
+                );
+    }
+    
+    /** This String declaration and assignment */
+    @Test
+    public void testEqualsObject() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +" import org.jmlspecs.annotation.*; \n"
+                +"@NonNullByDefault public class TestJava { \n"
+                
+                +"  public TestJava t;\n"
+                +"  public int a;\n"
+                +"  public static int b;\n"
+                +"  //@ requires (s.length() > 0); \n"
+                +"  public void m1(String s) {\n"
+                +"       String ss = s;\n"
+                +"       //@ assert ss.equals(s);\n"
+                +"  }\n"
+                
+                +" public TestJava() { t = new TestJava(); }\n"
+                +"}"
+                );
+    }
+    
+    /** This String declaration and assignment */
+    @Test
+    public void testEqualsObject2() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +" import org.jmlspecs.annotation.*; \n"
+                +"@NonNullByDefault public class TestJava { \n"
+                
+                +"  public TestJava t;\n"
+                +"  public int a;\n"
+                +"  public static int b;\n"
+                
+                +"  //@ requires (s.length() > 0); \n"
+                +"  public void m2(String s) {\n"
+                +"       String ss = s + s;\n"
+                +"       //@ assert ss.equals(s) == false;\n"
+                +"  }\n"
+                
+                +" public TestJava() { t = new TestJava(); }\n"
+                +"}"
+                );
+    }
+    
+    /** This String declaration and assignment */
+    @Test
+    public void testGetBytesObject() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +" import org.jmlspecs.annotation.*; \n"
+                +"@NonNullByDefault public class TestJava { \n"
+                
+                +"  public TestJava t;\n"
+                +"  public int a;\n"
+                +"  public static int b;\n"
+                
+                +"  //@ requires (s.length() > 0); \n"
+                +"  public void m2(String s) {\n"
+                +"       byte[] arr = s.getBytes();\n"
+                +"       //@ assert arr[0] == s.charAt(0);\n"
+                +"  }\n"
+                
+                +" public TestJava() { t = new TestJava(); }\n"
+                +"}"
+                );
+    }
+    
+    /** This String declaration and assignment */
+    @Test
+    public void testEqualsIgnoreCase() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +" import org.jmlspecs.annotation.*; \n"
+                +"@NonNullByDefault public class TestJava { \n"
+                
+                +"  public TestJava t;\n"
+                +"  public int a;\n"
+                +"  public static int b;\n"
+                
+                +"  //@ requires (s.length() > 0); \n"
+                +"  public void m2(String s) {\n"
+                +"       String ss = \"Aye\";\n"
+                +"       String sss = ss.toLowerCase();\n"
+                +"       //@ assert sss.equalsIgnoreCase(ss) == true;\n"
+                +"  }\n"
+                
+                +" public TestJava() { t = new TestJava(); }\n"
+                +"}"
+                );
+    }
+    
+    /** This String declaration and assignment */
+    @Test
+    public void testEqualsIgnoreCase2() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +" import org.jmlspecs.annotation.*; \n"
+                +"@NonNullByDefault public class TestJava { \n"
+                
+                +"  public TestJava t;\n"
+                +"  public int a;\n"
+                +"  public static int b;\n"
+                
+                +"  //@ requires (s.length() > 0); \n"
+                +"  public void m2(String s) {\n"
+                +"       String ss = s.toLowerCase();\n"
+                +"       //@ assert ss.equalsIgnoreCase(s);\n"
+                +"  }\n"
+                
+                +" public TestJava() { t = new TestJava(); }\n"
+                +"}"
+                );
+    }
+    
+    /** This String declaration and assignment */
+    @Test
+    public void testCompareToIgnoreCase() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +" import org.jmlspecs.annotation.*; \n"
+                +"@NonNullByDefault public class TestJava { \n"
+                
+                +"  public TestJava t;\n"
+                +"  public int a;\n"
+                +"  public static int b;\n"
+                
+                +"  //@ requires (s.length() > 0); \n"
+                +"  public void m2(String s) {\n"
+                +"       String ss = s;\n"
+                +"       //@ assert ss.compareToIgnoreCase(s) == 0;\n"
+                +"  }\n"
+                
+                +" public TestJava() { t = new TestJava(); }\n"
+                +"}"
+                );
+    }
+    
+    /** This String declaration and assignment */
+    @Test
+    public void testCompareToIgnoreCase2() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +" import org.jmlspecs.annotation.*; \n"
+                +"@NonNullByDefault public class TestJava { \n"
+                
+                +"  public TestJava t;\n"
+                +"  public int a;\n"
+                +"  public static int b;\n"
+                
+                +"  //@ requires (s.length() > 0); \n"
+                +"  public void m2(String s) {\n"
+                +"       String ss = s.toLowerCase();\n"
+                +"       //@ assert ss.compareToIgnoreCase(s) == 0;\n"
+                +"  }\n"
+                
+                +" public TestJava() { t = new TestJava(); }\n"
+                +"}"
+                );
+    }
+    
+    /** This String declaration and assignment */
+    @Test
+    public void testStartsWith() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +" import org.jmlspecs.annotation.*; \n"
+                +"@NonNullByDefault public class TestJava { \n"
+                
+                +"  public TestJava t;\n"
+                +"  public int a;\n"
+                +"  public static int b;\n"
+                
+                +"  //@ requires (s.length() > 0); \n"
+                +"  public void m2(String s) {\n"
+                +"       String ss = \"hey\";\n"
+                +"       //@ assert ss.startsWith(\"h\") == true;\n"
+                +"  }\n"
+                
+                +" public TestJava() { t = new TestJava(); }\n"
+                +"}"
+                );
+    }
+    
+    /** This String declaration and assignment */
+    @Test
+    public void testStartsWith2() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +" import org.jmlspecs.annotation.*; \n"
+                +"@NonNullByDefault public class TestJava { \n"
+                
+                +"  public TestJava t;\n"
+                +"  public int a;\n"
+                +"  public static int b;\n"
+                
+                +"  //@ requires (s.length() > 0); \n"
+                +"  public void m2(String s) {\n"
+                +"       String ss = s + s;\n"
+                +"       boolean t = ss.startsWith(s);\n"
+                +"       //@ assert t == true;\n"
+                +"  }\n"
+                
+                +" public TestJava() { t = new TestJava(); }\n"
+                +"}"
                 );
     }
 }
