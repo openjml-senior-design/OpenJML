@@ -22,6 +22,11 @@ public class escStringsTest extends EscBase {
     }
     
     public void helperTCX(String s, Object...list) {
+    	System.out.println("Running test...");
+    	System.out.println(s.replaceAll(";", ";\n")
+    			.replaceAll("\\{", "{\n")
+    			.replaceAll("\\}", "}\n"));
+    	
     	helpTCX("tt.Testjava",
     			""
     			+ "package tt;\n"
