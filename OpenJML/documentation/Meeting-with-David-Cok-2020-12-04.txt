@@ -1,0 +1,48 @@
+Notes from meeting between Gary Leavens and David Cok
+December 4, 2020
+
+Advice for the team
+
+David said he would proceed in several steps to get String specifications to verify in ESC:
+
+1. Generate toy problems and SMT-LIB scripts that use strings (in SMT)
+   with the goals of:
+     -understanding how to prove properties about strings, and
+     - checking that Z3 really works for strings
+2. Understand how to use the JSMT-LIB library
+     - to create SMT-LIB scripts (in memory)
+         these can be written out (to stdout) and then run in an SMT solver
+3. Create a Java class to be the "value type" for strings
+   - Create a Java class (say org.jmlspecs.lang.string, see the Specs project
+   in specs/org/jmlspecs/lang) that is final and implements a marker
+   interface (org.jmlspecs.utils.IJMLTYPE ?)
+   - This class would have operations that correspond directly to
+   those in SMT-LIB, and would have no JML specifications
+   (except perhaps for a new syntax, yet to be designed, that would
+   say that the effect is like a particular SMT-LIB operation)
+4. Change the OpenJML compiler to translate calls to this special
+   value type for strings directly into the corresponding SMT-LIB
+   operation calls in the SMT output, thereby translating such calls
+   into SMT.
+     - Existing examples in OpenJML:
+         o Sequences are translated into SMT arrays
+         o maps are translated into SMT maps
+	 o chars are translated into SMT shorts
+     - The connection to SMT would be hard-coded into the OpenJML compiler,
+       but eventualy there would be syntax for declaring the translation
+5. Upgrade Z3 to a new version that works with the latest SMT-LIB so
+   it works with strings (and floating point numbers).
+   This may mostly require debugging the interface that communicates
+   with Z3 (through a pipe, with the appropriate prompts and
+   interactions for the latest version of Z3).
+
+Meeting on Thursday
+
+David Cok is happy to attend our meeting on Dec. 10 at 10am (EST) on
+Zoom. He would find it most useful if the senior design team can
+present:
+
+   a. Their view of the problem they are solving
+   b. What has been learned so far about solving it (in OpenJML)
+   c. What has been done so far for the solution
+   d. Any problems encountered or questions
