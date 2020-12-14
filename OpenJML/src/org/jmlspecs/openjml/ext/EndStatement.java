@@ -8,6 +8,7 @@ import static org.jmlspecs.openjml.JmlTokenKind.ENDJMLCOMMENT;
 import static org.jmlspecs.openjml.ext.MethodSimpleClauseExtensions.alsoClause;
 import static org.jmlspecs.openjml.ext.MethodSimpleClauseExtensions.elseClause;
 
+import org.jmlspecs.openjml.Extensions;
 import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlExtension;
 import org.jmlspecs.openjml.JmlTokenKind;
@@ -160,35 +161,40 @@ public class EndStatement extends JmlExtension {
             ste.exports = exports.toList();
             parser.storeEnd(ste, parser.getEndPos(specs));
 
-            List<JCStatement> stat = parser.blockStatement();
-            if (stat == null || stat.isEmpty()) {
-                log.error(ste, "jml.message", "Statement specs found at the end of a block (or before an erroneous statement)");
-                return null;
-            } else if (stat.head instanceof JmlAbstractStatement && stat.head.toString() == EndStatement.beginID) {
-                log.error(stat.head, "jml.message", "Statement specs may not precede a JML statement clause");
-                return stat.head;
+            JCStatement begin = null;
+            if (parser.jmlTokenClauseKind() == EndStatement.beginClause) {
+                begin = (JCStatement)Extensions.findSM(beginID).parse(mods, beginID, beginClause, parser);
             }
             ListBuffer<JCStatement> stats = new ListBuffer<>();
-            if (stat.head instanceof JmlStatement && ((JmlStatement)stat.head).clauseType == EndStatement.beginClause) {
-                JCStatement begin = stat.head;
+            List<JCStatement> stat;
+            if (begin != null) {
                 // Has a begin statement, so we read statement until an end
                 while (true) {
+                    if (parser.jmlTokenClauseKind() == EndStatement.endClause) {
+                        Extensions.findSM(endID).parse(mods, endID, endClause, parser);
+                        break;
+                    }
                     stat = parser.blockStatement();
                     if (stat.isEmpty()) {
                         log.error(begin, "jml.message", "Expected an 'end' statement to match the begin statement before the end of block");
-                        break;
-                    } else if (stat.get(0) instanceof JmlStatement && ((JmlStatement)stat.get(0)).clauseType == EndStatement.endClause) {
                         break;
                     } else {
                         stats.addAll(stat);
                     }
                 }
-            } else if (stat.isEmpty()) {
-                log.error(ste, "jml.message", "Statement specs found at the end of a block (or before an erroneous statement)");
             } else {
+                stat = parser.blockStatement();
+                if (stat == null || stat.isEmpty()) {
+                    log.error(ste, "jml.message", "Statement specs found at the end of a block (or before an erroneous statement)");
+                    return null;
+                } else if (stat.head instanceof JmlAbstractStatement && stat.head.toString() == EndStatement.beginID) {
+                    log.error(stat.head, "jml.message", "Statement specs may not precede a JML statement clause");
+                    return stat.head;
+                }
                 stats.addAll(stat);
             }
-            ste.statements = parser.collectLoopSpecs(stats.toList());
+            //ste.statements = parser.collectLoopSpecs(stats.toList());
+            ste.statements = stats.toList();
             return ste;
         }
 
