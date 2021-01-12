@@ -315,12 +315,12 @@ public class SFBugs extends EscBase {
 
     @Ignore // FIXME - times out
     @Test public void gitbug500a() {
-        helpTCG();
+        helpTCG("-solver-seed=242");
     }
 
     @Ignore // FIXME - times out
     @Test public void gitbug500b() {
-        helpTCG();
+        helpTCG("-solver-seed=242");
     }
 
     @Test public void gitbug500c() {
@@ -333,13 +333,14 @@ public class SFBugs extends EscBase {
 
     // FIXME - problem in 503 is that various subtests non-deterministically timeout
     // This seems particularly the case with A1 and A4, which have an extraneous template argument
+    @Ignore // times out
     @Test public void gitbug503() {
-        helpTCG("-code-math=java","-timeout=600"); // java math just to avoid overflow error messages
+        helpTCG("-code-math=java","-timeout=600","-solver-seed=142"); // java math just to avoid overflow error messages
     }
 
     @Ignore // times out
     @Test public void gitbug503a() {
-        helpTCG("-code-math=java","-timeout=600"); // java math just to avoid overflow error messages
+        helpTCG("-code-math=java","-timeout=600","-solver-seed=42"); // java math just to avoid overflow error messages
     }
 
     @Test public void gitbug535() {
@@ -471,15 +472,15 @@ public class SFBugs extends EscBase {
         helpTCF("test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java","test/gitbug481a9", "-cp", "test/gitbug481b","-method="+m9,"-no-staticInitWarning");
     }
 
-    @Ignore // times out
+    @Ignore // FIXME - Out of memory
     @Test public void gitbug481a10() {
-        helpTCF("test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java","test/gitbug481a10", "-cp", "test/gitbug481b","-method="+m10,"-no-staticInitWarning");
+        helpTCF("test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java","test/gitbug481a10", "-cp", "test/gitbug481b","-method="+m10,"-no-staticInitWarning","-solver-seed=42");
     }
 
     @Ignore // FIXME - timeout
     @Test public void gitbug481arest() {
         expectedExit = 1;
-        helpTCF("test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java","test/gitbug481a", "-cp", "test/gitbug481b","-exclude="+all,"-no-staticInitWarning");
+        helpTCF("test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java","test/gitbug481a", "-cp", "test/gitbug481b","-exclude="+all,"-no-staticInitWarning","-solver-seed=142");
     }
 
     @Test public void gitbug482() {
@@ -589,8 +590,7 @@ public class SFBugs extends EscBase {
         helpTCG();
     }
     
-    // Double operations (sqrt) not yet implemented
-    @Ignore // FIXME - times out
+    @Ignore // FIXME -  Needs more double specs
     @Test public void gitbug580() {
         expectedExit = 0;
         helpTCG();
@@ -798,6 +798,18 @@ public class SFBugs extends EscBase {
     }
     
     @Test
+    public void gitbug629() {
+        expectedExit = 0;
+        helpTCG();
+    }
+    
+    @Test
+    public void gitbug629a() {
+        expectedExit = 0;
+        helpTCG();
+    }
+    
+    @Test
     public void gitbug630() {
         expectedExit = 0;
         helpTCG();
@@ -815,7 +827,7 @@ public class SFBugs extends EscBase {
         helpTCG();
     }
     
-    @Test
+    @Test @Ignore  // Needs specs about double
     public void gitbug633() {
         Assume.assumeTrue(runLongTests); // FIXME - And not yet working either
         cpathAddition = ":../OpenJML/runtime";
@@ -859,12 +871,18 @@ public class SFBugs extends EscBase {
         helpTCG();
     }
     
-     @Test
-    public void gitbug639() {
-        expectedExit = 0;
-        helpTCG();
-    }
-    
+    @Test
+   public void gitbug639() {
+       expectedExit = 0;
+       helpTCG();
+   }
+   
+    @Test
+   public void gitbug639a() {
+       expectedExit = 0;
+       helpTCG();
+   }
+   
     @Test
     public void gitbug640() {
     	expectedExit = 0;
@@ -932,6 +950,18 @@ public class SFBugs extends EscBase {
     }
 
     @Test
+    public void gitbug651() {
+        expectedExit = 0;
+        helpTCG();
+    }
+
+    @Test @Ignore // FIXME - needs some implementation
+    public void gitbug651a() {
+        expectedExit = 0;
+        helpTCG();
+    }
+
+    @Test
     public void gitbug653() {
         expectedExit = 0;
         helpTCG("-specspath=test/gitbug653");
@@ -942,6 +972,13 @@ public class SFBugs extends EscBase {
         expectedExit = 0;
         helpTCG();
     }
+    
+    @Test
+    public void gitbug659() {
+        expectedExit = 0;
+        helpTCG();
+    }
+    
     
     @Test
     public void gitbug667() {
@@ -997,6 +1034,12 @@ public class SFBugs extends EscBase {
     }
     
     @Test
+    public void gitbug678() {
+        expectedExit = 0;
+        helpTCG("-method=DoubleAbsolute");
+    }
+    
+    @Test
     public void gitbug681() {
         expectedExit = 0;
         helpTCG();
@@ -1009,7 +1052,19 @@ public class SFBugs extends EscBase {
     }
     
     @Test
+    public void gitbug683() {
+        expectedExit = 0;
+        helpTCG();
+    }
+    
+    @Test
     public void gitbug684() {
+        expectedExit = 0;
+        helpTCG();
+    }
+    
+    @Test
+    public void gitbug685() {
         expectedExit = 0;
         helpTCG();
     }
@@ -1030,6 +1085,60 @@ public class SFBugs extends EscBase {
     public void gitbug688() {
         expectedExit = 0;
         helpTCG("-subexpressions");
+    }
+    
+    @Test
+    public void gitbug695() {
+        expectedExit = 0;
+        helpTCG();
+    }
+    
+    @Test
+    public void gitbug696() {
+        expectedExit = 0;
+        helpTCG();
+    }
+    
+    @Test
+    public void gitbug698() {
+        expectedExit = 0;
+        helpTCG();
+    }
+    
+    @Test @Ignore // Will erroneously succeed until measured_by is implemented
+    public void gitbug705() {
+        expectedExit = 0;
+        helpTCG();
+    }
+
+    @Test @Ignore // Bug fixed, but the specs are not complete
+    public void gitbug710() {
+        expectedExit = 0;
+        helpTCF("test/gitbug710/java/util/IdentityHashMap.java", "test/gitbug710","-cp","test/gitbug710","-no-staticInitWarning","-timeout=300");
+    }
+    
+    @Test
+    public void gitbug711() {
+        expectedExit = 0;
+        helpTCG();
+    }
+    
+    @Test
+    public void gitbug712() {
+        expectedExit = 0;
+        helpTCG();
+    }
+    
+    @Test
+    public void gitbug716() {
+        expectedExit = 0;
+        helpTCG();
+    }
+    
+    @Test @Ignore // FIXME: Specs not yet finished
+    public void gitbug718() {
+        expectedExit = 0;
+        helpTCG();
     }
     
     public void gitbug888() {

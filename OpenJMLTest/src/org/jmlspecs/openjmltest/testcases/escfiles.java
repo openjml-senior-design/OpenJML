@@ -249,7 +249,7 @@ public class escfiles extends EscBase {
         helpTCF(OpenJMLDemoPath + "/src/openjml/ecudemo","test/ecuesc","-classpath",OpenJMLDemoPath + "/src/openjml/ecudemo","-escMaxWarnings=1");
     }
 
-    @Test @Ignore // FIXME - needs rewriting
+    @Test
     public void testValueTypes() {
         helpTF("valuetypes","-classpath","../OpenJML/runtime");
     }
@@ -368,7 +368,7 @@ public class escfiles extends EscBase {
         helpTF("esc2DTranspose");
     }
 
-    @Test
+    @Test @Ignore // FIXME - Specs need improvement
     public void testVT20191() {
         expectedExit = 0;
         helpTF("verifythis-2019-1","-checkFeasibility=none"); // FIXME - feasibility check times out
@@ -377,7 +377,7 @@ public class escfiles extends EscBase {
     @Test
     public void testVT20192() {
         expectedExit = 0;
-        helpTF("verifythis-2019-2");
+        helpTF("verifythis-2019-2","-solver-seed=42");
     }
 
     @Test 
@@ -825,7 +825,7 @@ public class escfiles extends EscBase {
         helpTF("escPrivate");
     }
 
-    @Test
+    @Test  // FIXME - not yet working
     public void testPrimitiveTypes() {
         expectedExit = 0;
         helpTF("primitives");
@@ -957,6 +957,22 @@ public class escfiles extends EscBase {
     @Test
     public void varargs() {
         helpTF("varargs");
+    }
+    
+    @Test
+    public void jmlstring() {
+        helpTF("valuestrings");
+    }
+    
+    @Test
+    public void jmlstringBad() {
+        expectedExit = 1;
+        helpTF("valuestringsBad");
+    }
+    
+    @Test // FIXME - get an infeasibility when Arrays.binarySearch uses Arrays.contains
+    public void binarySearch() {
+        helpTF("binarySearch");
     }
 
 

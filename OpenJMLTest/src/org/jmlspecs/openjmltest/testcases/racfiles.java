@@ -412,6 +412,11 @@ public class racfiles extends RacBase {
         helpTCF("test/gitbug548racB","test/gitbug548racB","Test");
     }
 
+    @Test @Ignore // FIXME - Class encoding error in RAC
+    public void gitbug584() {
+        helpTCF("test/gitbug584","test/gitbug584","AClass");
+    }
+
     @Test
     public void gitbug590() {
         runrac = false; // Expected compile error
@@ -510,6 +515,12 @@ public class racfiles extends RacBase {
     public void racRM2a() {
         expectedRACExit = 0;
         helpTCF("test/racRM2","test/racRM2","Main","-code-math=safe","-spec-math=bigint");
+    }
+    
+    @Test @Ignore // FIXME - RAC Not yet working for programs using string
+    public void valuestrings() {
+        expectedRACExit = 1;
+        helpTCF("test/valuestrings","test/valuestrings","JmlStringTest");
     }
 
 
