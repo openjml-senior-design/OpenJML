@@ -4,6 +4,11 @@
  */
 package org.jmlspecs.openjml.esc;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.PrintWriter;
+import java.io.Writer;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -19,8 +24,11 @@ import org.jmlspecs.openjml.vistors.JmlTreeScanner;
 import org.smtlib.ICommand;
 import org.smtlib.ICommand.IScript;
 import org.smtlib.IExpr;
+import org.smtlib.IPos;
 import org.smtlib.IExpr.*;
+import org.smtlib.IVisitor.VisitorException;
 import org.smtlib.ISort;
+import org.smtlib.IVisitor;
 import org.smtlib.SMT;
 import org.smtlib.SMT.Configuration;
 import org.smtlib.command.*;
@@ -737,8 +745,21 @@ public class SMTTranslator extends JmlTreeScanner {
     //  - might want the option to produce many individual programs, i.e.
     //  one for each assertion, or a form that accommodates push/pop/coreids etc.
     
+    static class ConversionInfo {
+        public String strLenVar;
+        public String charSelectStr;
+        public String strVar;
+        
+        @Override
+        public String toString() {
+            return String.format("var: %s, len: %s, sel: %s", strVar, strLenVar, charSelectStr);
+        }
+    }
+    
     public ICommand.IScript convert(BasicProgram program, SMT smt, boolean useBV) {
+                
         script = new Script();
+        
         this.useBV = useBV;
         ICommand c;
         startCommands = new LinkedList<ICommand>();
@@ -767,6 +788,7 @@ public class SMTTranslator extends JmlTreeScanner {
             log.warning("jml.message","Expected an integer for a seed: " + strseed);
         }
 
+        
         // add background statements
         // declare the sorts we use to model Java+JML
         // (declare-sort REF 0)
@@ -826,6 +848,8 @@ public class SMTTranslator extends JmlTreeScanner {
 //        			intSort);
 //        	commands.add(c);
 //        }
+        
+        
         
         // Constants
         if (useBV) {
@@ -911,6 +935,85 @@ public class SMTTranslator extends JmlTreeScanner {
         addType(syms.exceptionType);
         addType(syms.runtimeExceptionType);
         
+        Queue<ConversionInfo> queue = new ArrayDeque<>();
+        
+        for (int i = 0; i < program.blocks().size(); i++) {
+            
+            BasicProgram.BasicBlock block = program.blocks().get(i);
+            JCStatement stmt = block.statements().size() > 3 ? block.statements().get(2) : null;
+            
+//            try (PrintWriter writer = new PrintWriter(new FileOutputStream(
+//                    new File("C:\\Users\\marloncalvo\\Desktop\\debug\\out2.txt"), 
+//                true))) {
+//                
+//                for (JCStatement stmt2 : block.statements()) {
+//                    writer.println(stmt2);
+//                }
+//                
+//                writer.println("===");
+//                writer.println(stmt);
+//                writer.println(block);
+//                writer.println("=====================");
+//            } catch (Exception e) {}
+            
+            if (stmt != null && stmt.toString().contains("// Assuming postconditions for smtlib.string.at(java.lang.String,int)")) {
+            
+                try (PrintWriter writer = new PrintWriter(new FileOutputStream(
+                        new File("C:\\Users\\marloncalvo\\Desktop\\debug\\out2.txt"), 
+                    true))) {
+                
+                    JCStatement varStatement = block.statements().get(4);
+                    JCStatement lengthStatement = block.statements().get(22);
+                        
+                    i += 13;
+                    
+                    block = program.blocks().get(i);
+                    
+                    JCStatement selectStatement = block.statements().get(6);
+                    
+                    String var = convertExpr(((JmlVariableDecl)varStatement).init).toString();
+                    String len = convertExpr(((JmlVariableDecl)lengthStatement).init).toString();
+                    String sel = convertExpr(((JmlVariableDecl)selectStatement).init).toString();
+                    
+//                    writer.println(var);
+//                    writer.println(len);
+//                    writer.println(sel);
+
+                    sel = sel.substring(sel.indexOf("(select"));
+                    sel = new StringBuilder(sel).reverse().toString();
+                    sel = sel.replaceFirst("\\d+", "s%");
+                    sel = new StringBuilder(sel).reverse().toString();
+                    
+                    ConversionInfo info = new ConversionInfo();
+                    info.strVar = var;
+                    info.strLenVar = len;
+                    info.charSelectStr = sel;
+                    
+                    queue.add(info);
+                    
+                } catch (Exception e) {
+                    try (PrintWriter writer = new PrintWriter(new FileOutputStream(
+                            new File("C:\\Users\\marloncalvo\\Desktop\\debug\\out2.txt"), 
+                        true))) {
+                        e.printStackTrace(writer);
+                    } catch (FileNotFoundException e1) {
+                        // TODO Auto-generated catch block
+                        e1.printStackTrace();
+                    }
+                }
+            }
+        }
+        
+        for (ConversionInfo info : queue) {
+            try (PrintWriter writer = new PrintWriter(new FileOutputStream(
+                    new File("C:\\Users\\marloncalvo\\Desktop\\debug\\out2.txt"), 
+                true))) {
+                writer.println(info);
+            } catch (Exception e) {
+                
+            }
+        }
+        
         // Now translate all the programs background assertions
         for (JCExpression e: program.background()) {
             try {
@@ -920,6 +1023,7 @@ public class SMTTranslator extends JmlTreeScanner {
                 // skip - error already issued // FIXME - better error recovery?
             }
         }
+        
         
         // The 'defined' set holds all Names that have already had SMT definitions issued
         // We have already defined some names - record that fact.
@@ -958,6 +1062,7 @@ public class SMTTranslator extends JmlTreeScanner {
         for (BasicProgram.Definition e: program.definitions()) {
             try {
                 scan(e.value);
+
                 ISymbol sym = F.symbol(e.id.toString());
                 c = new C_define_fun(sym,
                         new LinkedList<IDeclaration>(),
@@ -1291,7 +1396,9 @@ public class SMTTranslator extends JmlTreeScanner {
         
         // First add all declarations
         while (iter.hasNext()) {
-            convertDeclaration(iter.next());
+            JCStatement stmt = iter.next();
+
+            convertDeclaration(stmt);
         }
 
         // Then construct the block expression from the end to the start
@@ -1312,7 +1419,7 @@ public class SMTTranslator extends JmlTreeScanner {
             tail = convertList(block.statements,tail);
             
         } else {
-
+            
             tail = convertList2(block.id.toString(),block.statements,tail);
 
         }
@@ -1336,10 +1443,22 @@ public class SMTTranslator extends JmlTreeScanner {
     public void convertDeclaration(JCStatement stat) {
         if (stat instanceof JmlVariableDecl) {
             try {
-                JmlVariableDecl decl = (JmlVariableDecl)stat;
+                
+                
                 // convert to a declaration or definition
+                JmlVariableDecl decl = (JmlVariableDecl) stat;
                 IExpr init = null;
                 if (useFcnDef) init = decl.init == null ? null : convertExpr(decl.init);
+                
+                try (PrintWriter writer = new PrintWriter(new FileOutputStream(
+                        new File("C:\\Users\\marloncalvo\\Desktop\\debug\\out3.txt"), 
+                        true))) {
+                    
+                    writer.println(stat.toString());
+                    writer.println(init);
+                    writer.println();
+                } catch (Exception e) {}
+                
                 
                 String s = makeBarEnclosedString(decl.name.toString());
                 ISymbol sym = F.symbol(s);
@@ -1539,7 +1658,10 @@ public class SMTTranslator extends JmlTreeScanner {
             JCStatement stat = iter.next();
             try {
                 if (stat instanceof JmlVariableDecl) {
+                    
+                    
                     JmlVariableDecl decl = (JmlVariableDecl)stat;
+
                     if (!useFcnDef && decl.init != null) {
                         IExpr exx = convertExpr(decl.init);
                         exx = F.fcn(F.symbol("="), F.symbol(decl.name.toString()), exx);
@@ -1550,6 +1672,9 @@ public class SMTTranslator extends JmlTreeScanner {
                     continue;
                 } else if (stat instanceof JmlStatementExpr) {
                     JmlStatementExpr s = (JmlStatementExpr)stat;
+
+      
+                    
                     if (s.clauseType == assumeClause) {
                         if (s.label == Label.METHOD_DEFINITION) {
                             JCExpression ex = s.expression;
@@ -1878,88 +2003,117 @@ public class SMTTranslator extends JmlTreeScanner {
     @Override
     public void visitApply(JCMethodInvocation tree) {
         JCExpression m = tree.meth;
-        if (m instanceof JCIdent) {
-            String name = ((JCIdent)m).name.toString();
-            String newname = name;
-            addFcn(newname,tree);
-            List<IExpr> newargs = new LinkedList<IExpr>();
-            for (JCExpression arg: tree.args) {
-                newargs.add(convertExpr(arg));
+        boolean toUse = m.toString().contains("smtlib_string_at");
+        try (PrintWriter writer = new PrintWriter(new FileOutputStream(
+                new File("C:\\Users\\marloncalvo\\Desktop\\debug\\out.txt"), 
+                true))) {
+           
+            if (toUse) {
+                writer.println("method: " + m.toString());               
             }
-            if (newargs.isEmpty()) result = F.symbol(newname);
-            else result = F.fcn(F.symbol(newname),newargs);
-            return;
+            
 
-        } else if (m == null) {
-            if (tree instanceof JmlBBFieldAssignment) {
-                IExpr.IFcnExpr right = F.fcn(F.symbol("store"),
-                        convertExpr(tree.args.get(1)),
-                        convertExpr(tree.args.get(2)),
-                        convertExpr(tree.args.get(3))
-                        );
-                result = F.fcn(eqSym, convertExpr(tree.args.get(0)),right);
+            if (m instanceof JCIdent) {
+                String name = ((JCIdent)m).name.toString();
+                String newname = name;
+                addFcn(newname,tree);
+                List<IExpr> newargs = new LinkedList<IExpr>();
+                if (toUse) {
+                    writer.println(tree.args.length());
+                }
+                for (JCExpression arg: tree.args) {
+                    if (toUse) {
+                        writer.println("arg: " + arg.toString());               
+                    }
+                    newargs.add(convertExpr(arg));
+                }
+                
+                if (newargs.isEmpty()) result = F.symbol(newname);
+                else result = F.fcn(F.symbol(newname),newargs);
+                
+//                writer.println(result.toString());
+  
+                if (toUse) {
+                    
+                }
+                
                 return;
-            }
-            else if (tree instanceof JmlBBArrayAssignment) {
-                if (tree.args.length() > 3) {
-                    // [0] = store([1],[2], store(select([1],[2]),[3],[4]))
-                    IExpr.IFcnExpr sel = F.fcn(selectSym,
-                            convertExpr(tree.args.get(1)),
-                            convertExpr(tree.args.get(2))
-                            );
-                    IExpr.IFcnExpr newarray = F.fcn(F.symbol("store"),
-                            sel,
-                            convertExpr(tree.args.get(3)),
-                            convertExpr(tree.args.get(4))
-                            );
-
+                
+            } else if (m == null) {
+                if (tree instanceof JmlBBFieldAssignment) {
                     IExpr.IFcnExpr right = F.fcn(F.symbol("store"),
                             convertExpr(tree.args.get(1)),
                             convertExpr(tree.args.get(2)),
-                            newarray
+                            convertExpr(tree.args.get(3))
                             );
                     result = F.fcn(eqSym, convertExpr(tree.args.get(0)),right);
-                } else {
-                    // [0] = store([1],[2], select([0],[2]))
-                    IExpr arg0 = convertExpr(tree.args.get(0));
-                    IExpr arg2 = convertExpr(tree.args.get(2));
-                    IExpr.IFcnExpr sel = F.fcn(selectSym,
-                            arg0,
-                            arg2
-                            );
-
-                    IExpr.IFcnExpr newarray = F.fcn(F.symbol("store"),
-                            convertExpr(tree.args.get(1)),
-                            arg2,
-                            sel
-                            );
-                    result = F.fcn(eqSym, arg0,newarray);                    
+                    return;
                 }
-                return;
+                else if (tree instanceof JmlBBArrayAssignment) {
+                    if (tree.args.length() > 3) {
+                        // [0] = store([1],[2], store(select([1],[2]),[3],[4]))
+                        IExpr.IFcnExpr sel = F.fcn(selectSym,
+                                convertExpr(tree.args.get(1)),
+                                convertExpr(tree.args.get(2))
+                                );
+                        IExpr.IFcnExpr newarray = F.fcn(F.symbol("store"),
+                                sel,
+                                convertExpr(tree.args.get(3)),
+                                convertExpr(tree.args.get(4))
+                                );
+                        
+                        IExpr.IFcnExpr right = F.fcn(F.symbol("store"),
+                                convertExpr(tree.args.get(1)),
+                                convertExpr(tree.args.get(2)),
+                                newarray
+                                );
+                        result = F.fcn(eqSym, convertExpr(tree.args.get(0)),right);
+                    } else {
+                        // [0] = store([1],[2], select([0],[2]))
+                        IExpr arg0 = convertExpr(tree.args.get(0));
+                        IExpr arg2 = convertExpr(tree.args.get(2));
+                        IExpr.IFcnExpr sel = F.fcn(selectSym,
+                                arg0,
+                                arg2
+                                );
+                        
+                        IExpr.IFcnExpr newarray = F.fcn(F.symbol("store"),
+                                convertExpr(tree.args.get(1)),
+                                arg2,
+                                sel
+                                );
+                        result = F.fcn(eqSym, arg0,newarray);                    
+                    }
+                    return;
+                }
+            } else if (m instanceof JCFieldAccess) {
+                JCFieldAccess fa = (JCFieldAccess)m;
+                String name = fa.name.toString();
+                String newname = null;
+                if (Utils.instance(context).isJMLStatic(fa.sym)) {
+                    // FIXME The fully qualifiedness should be done in BasicBlocking
+                    newname = "_" + m.toString();
+                    addFcn(newname,tree);
+                } else {
+                    newname = fa.sym.owner.toString() + "." + name;
+                    addFcn(newname,tree);
+                }
+                List<IExpr> newargs = new LinkedList<IExpr>();
+                if (!Utils.instance(context).isJMLStatic(fa.sym)) {
+                    newargs.add(convertExpr(fa.selected));
+                }
+                for (JCExpression arg: tree.args) {
+                    newargs.add(convertExpr(arg));
+                }
+                result = newargs.isEmpty() ? F.symbol(newname)
+                        : F.fcn(F.symbol(newname),newargs);
+                
             }
-        } else if (m instanceof JCFieldAccess) {
-            JCFieldAccess fa = (JCFieldAccess)m;
-            String name = fa.name.toString();
-            String newname = null;
-            if (Utils.instance(context).isJMLStatic(fa.sym)) {
-                // FIXME The fully qualifiedness should be done in BasicBlocking
-                newname = "_" + m.toString();
-                addFcn(newname,tree);
-            } else {
-                newname = fa.sym.owner.toString() + "." + name;
-                addFcn(newname,tree);
-            }
-            List<IExpr> newargs = new LinkedList<IExpr>();
-            if (!Utils.instance(context).isJMLStatic(fa.sym)) {
-                newargs.add(convertExpr(fa.selected));
-            }
-            for (JCExpression arg: tree.args) {
-                newargs.add(convertExpr(arg));
-            }
-            result = newargs.isEmpty() ? F.symbol(newname)
-                             : F.fcn(F.symbol(newname),newargs);
-            
+        } catch (FileNotFoundException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
         }
+        
     }
     
     /** Converts a JML function-like expression: 
