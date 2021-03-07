@@ -9162,6 +9162,21 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         newCall.setType(that.type);
                         JCIdent resultId = M.at(p).Ident(resultSym1);
                         addAssumeEqual(that, Label.METHOD_ASSUME, resultId, newCall);
+                        
+                        if (calleeMethodSym1.owner.toString().startsWith("smtlib.string")) {
+
+                            JCExpression iden = newargs.toList().get(0);     
+                            
+                            ClassSymbol chseq = ClassReader.instance(context).enterClass(names.fromString("java.lang.CharSequence"));
+                            Symbol chs = utils.findMember(chseq, "charArray");                    
+
+                            JCExpression fa = treeutils.factory.Select(iden, chs);
+                            JCExpression e = treeutils.makeNotNull(fa.pos,fa);
+                            fa = treeutils.makeLength(iden,fa);
+                            JCExpression ee = treeutils.makeEquality(iden.pos, fa, treeutils.makeIntLiteral(iden,0));
+                            addAssume(that,Label.IMPLICIT_ASSUME,treeutils.makeAnd(iden.pos, e, ee));
+                        }
+                        
                     });
                 JCBlock bl = M.at(that.pos).Block(0L,stats);
                 if (!resultSym.type.isPrimitiveOrVoid() && !utils.isPrimitiveType(resultSym.type)) {

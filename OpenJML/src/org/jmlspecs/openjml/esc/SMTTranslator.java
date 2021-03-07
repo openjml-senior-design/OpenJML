@@ -1085,7 +1085,7 @@ public class SMTTranslator extends JmlTreeScanner {
         
         // add blocks
         for (BasicProgram.BasicBlock b: program.blocks()) {
-            convertBasicBlock(b);
+            convertBasicBlock(smt, b);
         }
         
         {
@@ -1379,7 +1379,7 @@ public class SMTTranslator extends JmlTreeScanner {
     /** Converts a BasicBlock into SMTLIB, adding commands into the
      * current 'commands' list.
      */
-    public void convertBasicBlock(BasicProgram.BasicBlock block) {
+    public void convertBasicBlock(SMT smt, BasicProgram.BasicBlock block) {
         ListIterator<JCStatement> iter = block.statements.listIterator();
         IExpr tail; 
         if (block.followers.isEmpty()) {
@@ -1420,7 +1420,7 @@ public class SMTTranslator extends JmlTreeScanner {
             
         } else {
             
-            tail = convertList2(block.id.toString(),block.statements,tail);
+            tail = convertList2(smt, block.id.toString(),block.statements,tail);
 
         }
 
@@ -1649,7 +1649,7 @@ public class SMTTranslator extends JmlTreeScanner {
 //        return tail;
 //    }
 
-    public IExpr convertList2(String blockid, List<JCStatement> list, IExpr tail) {
+    public IExpr convertList2(SMT smt, String blockid, List<JCStatement> list, IExpr tail) {
         ListIterator<JCStatement> iter = list.listIterator();
         Stack<IExpr> stack = new Stack<IExpr>();
         int count = 0;
@@ -1689,6 +1689,36 @@ public class SMTTranslator extends JmlTreeScanner {
                             ISymbol newsym = F.symbol(blockid + "__A" + (++count));
                             commands.add(new C_define_fun(newsym,new LinkedList<IDeclaration>(),boolSort,exx));
                             stack.push(newsym);
+                            
+                            if (s.toString().contains("smtlib_string_at")) {
+                                JmlStatementExpr stmt = (JmlStatementExpr)iter.next();
+                                iter.remove();
+
+                                JCBinary binary = (JCBinary)stmt.expression;
+                                JCBinary lhs = (JCBinary)binary.lhs;
+                                JCBinary rhs = (JCBinary)binary.rhs;
+
+                                JCExpression array = lhs.lhs;
+                                JCExpression length = rhs.lhs;
+
+                                JCMethodInvocation funCall = (JCMethodInvocation)((JCBinary)s.expression).rhs;
+
+                                String arrayVar = convertExpr(((JCFieldAccess)array).selected).toString();
+                                String stringVar = arrayVar.substring(0, arrayVar.length()-1) + "__STRING|";
+                                String lengthVar = arrayVar.substring(0, arrayVar.length()-1) + "__LENGTH|";
+
+                                String lengthCommand = convertExpr(length).toString();
+                                String selectCommand = convertExpr(array).toString();
+                                String method = funCall.meth.toString();
+                                int index = Integer.valueOf(funCall.args.get(1).toString());
+
+                                addCommand(smt, String.format("(declare-fun %s () String)", stringVar));
+                                addCommand(smt, String.format("(define-fun %s () Int %s)", lengthVar, lengthCommand));
+                                addCommand(smt, String.format("(assert (= %s (str.len %s)))", lengthVar, stringVar));
+                                addCommand(smt, String.format("(assert (forall ((i Int)) (=> (and (>= i 0) (< i %s)) (= (str.to_code (str.at %s i)) (select (select arrays_char_0 %s) i)))))", lengthVar, stringVar, selectCommand));
+                                addCommand(smt, String.format("(assert (= (%s %s %d) (str.to_code (str.at %s %d))))", method, arrayVar, index, stringVar, index));
+                            }
+                            
                         }
                     } else if (s.clauseType == assertClause) {
                         IExpr exx = convertExpr(s.expression);
