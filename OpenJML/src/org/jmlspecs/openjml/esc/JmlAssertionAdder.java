@@ -5,6 +5,117 @@
 package org.jmlspecs.openjml.esc;
 
 
+import static org.jmlspecs.openjml.ext.AssignableClauseExtension.accessibleClause;
+import static org.jmlspecs.openjml.ext.AssignableClauseExtension.assignableClauseKind;
+import static org.jmlspecs.openjml.ext.FrameExpressions.notAssignedID;
+import static org.jmlspecs.openjml.ext.FrameExpressions.onlyAssignedID;
+import static org.jmlspecs.openjml.ext.FrameExpressions.onlyCapturedID;
+import static org.jmlspecs.openjml.ext.FunctionLikeExpressions.bigintMathID;
+import static org.jmlspecs.openjml.ext.FunctionLikeExpressions.bigintMathKind;
+import static org.jmlspecs.openjml.ext.FunctionLikeExpressions.distinctID;
+import static org.jmlspecs.openjml.ext.FunctionLikeExpressions.distinctKind;
+import static org.jmlspecs.openjml.ext.FunctionLikeExpressions.durationID;
+import static org.jmlspecs.openjml.ext.FunctionLikeExpressions.elemtypeID;
+import static org.jmlspecs.openjml.ext.FunctionLikeExpressions.elemtypeKind;
+import static org.jmlspecs.openjml.ext.FunctionLikeExpressions.erasureID;
+import static org.jmlspecs.openjml.ext.FunctionLikeExpressions.invariantForID;
+import static org.jmlspecs.openjml.ext.FunctionLikeExpressions.isInitializedID;
+import static org.jmlspecs.openjml.ext.FunctionLikeExpressions.javaMathID;
+import static org.jmlspecs.openjml.ext.FunctionLikeExpressions.javaMathKind;
+import static org.jmlspecs.openjml.ext.FunctionLikeExpressions.keyID;
+import static org.jmlspecs.openjml.ext.FunctionLikeExpressions.nonnullelementsID;
+import static org.jmlspecs.openjml.ext.FunctionLikeExpressions.notModifiedID;
+import static org.jmlspecs.openjml.ext.FunctionLikeExpressions.nowarnID;
+import static org.jmlspecs.openjml.ext.FunctionLikeExpressions.nowarnopID;
+import static org.jmlspecs.openjml.ext.FunctionLikeExpressions.reachID;
+import static org.jmlspecs.openjml.ext.FunctionLikeExpressions.safeMathID;
+import static org.jmlspecs.openjml.ext.FunctionLikeExpressions.safeMathKind;
+import static org.jmlspecs.openjml.ext.FunctionLikeExpressions.spaceID;
+import static org.jmlspecs.openjml.ext.FunctionLikeExpressions.typeofID;
+import static org.jmlspecs.openjml.ext.FunctionLikeExpressions.typeofKind;
+import static org.jmlspecs.openjml.ext.FunctionLikeExpressions.warnID;
+import static org.jmlspecs.openjml.ext.FunctionLikeExpressions.warnopID;
+import static org.jmlspecs.openjml.ext.FunctionLikeExpressions.workingspaceID;
+import static org.jmlspecs.openjml.ext.MethodExprClauseExtensions.requiresClauseKind;
+import static org.jmlspecs.openjml.ext.MethodSimpleClauseExtensions.exceptionalBehaviorClause;
+import static org.jmlspecs.openjml.ext.MethodSimpleClauseExtensions.modelprogramClause;
+import static org.jmlspecs.openjml.ext.MethodSimpleClauseExtensions.normalBehaviorClause;
+import static org.jmlspecs.openjml.ext.MiscExpressions.allocID;
+import static org.jmlspecs.openjml.ext.MiscExpressions.allocKind;
+import static org.jmlspecs.openjml.ext.MiscExpressions.bsmaxID;
+import static org.jmlspecs.openjml.ext.MiscExpressions.freshID;
+import static org.jmlspecs.openjml.ext.MiscExpressions.freshKind;
+import static org.jmlspecs.openjml.ext.MiscExpressions.lblanyKind;
+import static org.jmlspecs.openjml.ext.MiscExpressions.lblnegKind;
+import static org.jmlspecs.openjml.ext.MiscExpressions.lblposKind;
+import static org.jmlspecs.openjml.ext.MiscExpressions.typelcID;
+import static org.jmlspecs.openjml.ext.MiscExpressions.typelcKind;
+import static org.jmlspecs.openjml.ext.MiscExtensions.everythingID;
+import static org.jmlspecs.openjml.ext.MiscExtensions.everythingKind;
+import static org.jmlspecs.openjml.ext.MiscExtensions.nothingKind;
+import static org.jmlspecs.openjml.ext.MiscExtensions.notspecifiedKind;
+import static org.jmlspecs.openjml.ext.Operators.equivalenceID;
+import static org.jmlspecs.openjml.ext.Operators.impliesID;
+import static org.jmlspecs.openjml.ext.Operators.inequivalenceID;
+import static org.jmlspecs.openjml.ext.Operators.jsubtypeofID;
+import static org.jmlspecs.openjml.ext.Operators.jsubtypeofKind;
+import static org.jmlspecs.openjml.ext.Operators.jsubtypeofeqID;
+import static org.jmlspecs.openjml.ext.Operators.jsubtypeofeqKind;
+import static org.jmlspecs.openjml.ext.Operators.lockleID;
+import static org.jmlspecs.openjml.ext.Operators.lockltID;
+import static org.jmlspecs.openjml.ext.Operators.reverseimpliesID;
+import static org.jmlspecs.openjml.ext.Operators.subtypeofID;
+import static org.jmlspecs.openjml.ext.Operators.subtypeofKind;
+import static org.jmlspecs.openjml.ext.Operators.subtypeofeqID;
+import static org.jmlspecs.openjml.ext.Operators.subtypeofeqKind;
+import static org.jmlspecs.openjml.ext.Operators.wfleID;
+import static org.jmlspecs.openjml.ext.Operators.wfltID;
+import static org.jmlspecs.openjml.ext.QuantifiedExpressions.qexistsID;
+import static org.jmlspecs.openjml.ext.QuantifiedExpressions.qexistsKind;
+import static org.jmlspecs.openjml.ext.QuantifiedExpressions.qforallID;
+import static org.jmlspecs.openjml.ext.QuantifiedExpressions.qforallKind;
+import static org.jmlspecs.openjml.ext.QuantifiedExpressions.qmaxID;
+import static org.jmlspecs.openjml.ext.QuantifiedExpressions.qminID;
+import static org.jmlspecs.openjml.ext.QuantifiedExpressions.qminKind;
+import static org.jmlspecs.openjml.ext.QuantifiedExpressions.qnumofID;
+import static org.jmlspecs.openjml.ext.QuantifiedExpressions.qnumofKind;
+import static org.jmlspecs.openjml.ext.QuantifiedExpressions.qproductID;
+import static org.jmlspecs.openjml.ext.QuantifiedExpressions.qsumID;
+import static org.jmlspecs.openjml.ext.ShowStatement.showClause;
+import static org.jmlspecs.openjml.ext.SingletonExpressions.countID;
+import static org.jmlspecs.openjml.ext.SingletonExpressions.countKind;
+import static org.jmlspecs.openjml.ext.SingletonExpressions.elseKind;
+import static org.jmlspecs.openjml.ext.SingletonExpressions.exceptionKind;
+import static org.jmlspecs.openjml.ext.SingletonExpressions.indexKind;
+import static org.jmlspecs.openjml.ext.SingletonExpressions.informalCommentKind;
+import static org.jmlspecs.openjml.ext.SingletonExpressions.resultKind;
+import static org.jmlspecs.openjml.ext.SingletonExpressions.valuesKind;
+import static org.jmlspecs.openjml.ext.StateExpressions.oldID;
+import static org.jmlspecs.openjml.ext.StateExpressions.oldKind;
+import static org.jmlspecs.openjml.ext.StateExpressions.pastID;
+import static org.jmlspecs.openjml.ext.StateExpressions.pastKind;
+import static org.jmlspecs.openjml.ext.StateExpressions.preID;
+import static org.jmlspecs.openjml.ext.StateExpressions.preKind;
+import static org.jmlspecs.openjml.ext.StatementExprExtensions.assertClause;
+import static org.jmlspecs.openjml.ext.StatementExprExtensions.assumeClause;
+import static org.jmlspecs.openjml.ext.StatementExprExtensions.checkClause;
+import static org.jmlspecs.openjml.ext.StatementExprExtensions.commentClause;
+import static org.jmlspecs.openjml.ext.StatementExprExtensions.commentID;
+import static org.jmlspecs.openjml.ext.StatementExprExtensions.hencebyClause;
+import static org.jmlspecs.openjml.ext.StatementExprExtensions.loopdecreasesClause;
+import static org.jmlspecs.openjml.ext.StatementExprExtensions.loopinvariantClause;
+import static org.jmlspecs.openjml.ext.StatementExprExtensions.useClause;
+import static org.jmlspecs.openjml.ext.TypeExprClauseExtension.axiomClause;
+import static org.jmlspecs.openjml.ext.TypeExprClauseExtension.constraintClause;
+import static org.jmlspecs.openjml.ext.TypeExprClauseExtension.initiallyClause;
+import static org.jmlspecs.openjml.ext.TypeExprClauseExtension.invariantClause;
+import static org.jmlspecs.openjml.ext.TypeInClauseExtension.inClause;
+import static org.jmlspecs.openjml.ext.TypeRWClauseExtension.readableClause;
+import static org.jmlspecs.openjml.ext.TypeRWClauseExtension.writableClause;
+import static org.jmlspecs.openjml.ext.TypeRepresentsClauseExtension.representsClause;
+
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.URI;
@@ -15,7 +126,6 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.ListIterator;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.Stack;
 
@@ -25,65 +135,213 @@ import javax.tools.JavaFileObject;
 
 import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.annotation.Nullable;
-import org.jmlspecs.openjml.*;
+import org.jmlspecs.openjml.IArithmeticMode;
+import org.jmlspecs.openjml.IJmlClauseKind;
+import org.jmlspecs.openjml.JmlExpressionVisitor;
+import org.jmlspecs.openjml.JmlInternalAbort;
+import org.jmlspecs.openjml.JmlInternalError;
+import org.jmlspecs.openjml.JmlOption;
+import org.jmlspecs.openjml.JmlPretty;
+import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.JmlSpecs.FieldSpecs;
 import org.jmlspecs.openjml.JmlSpecs.TypeSpecs;
-import org.jmlspecs.openjml.JmlTree.*;
+import org.jmlspecs.openjml.JmlTokenKind;
+import org.jmlspecs.openjml.JmlTree;
+import org.jmlspecs.openjml.JmlTree.IJmlLoop;
+import org.jmlspecs.openjml.JmlTree.JmlBBArrayAccess;
+import org.jmlspecs.openjml.JmlTree.JmlBinary;
+import org.jmlspecs.openjml.JmlTree.JmlBlock;
+import org.jmlspecs.openjml.JmlTree.JmlChained;
+import org.jmlspecs.openjml.JmlTree.JmlChoose;
+import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
+import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
+import org.jmlspecs.openjml.JmlTree.JmlDoWhileLoop;
+import org.jmlspecs.openjml.JmlTree.JmlEnhancedForLoop;
+import org.jmlspecs.openjml.JmlTree.JmlForLoop;
+import org.jmlspecs.openjml.JmlTree.JmlGroupName;
+import org.jmlspecs.openjml.JmlTree.JmlIfStatement;
+import org.jmlspecs.openjml.JmlTree.JmlImport;
+import org.jmlspecs.openjml.JmlTree.JmlInlinedLoop;
+import org.jmlspecs.openjml.JmlTree.JmlLabeledStatement;
+import org.jmlspecs.openjml.JmlTree.JmlLambda;
+import org.jmlspecs.openjml.JmlTree.JmlLblExpression;
+import org.jmlspecs.openjml.JmlTree.JmlMatchExpression;
+import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
+import org.jmlspecs.openjml.JmlTree.JmlMethodClauseCallable;
+import org.jmlspecs.openjml.JmlTree.JmlMethodClauseConditional;
+import org.jmlspecs.openjml.JmlTree.JmlMethodClauseDecl;
+import org.jmlspecs.openjml.JmlTree.JmlMethodClauseExpr;
+import org.jmlspecs.openjml.JmlTree.JmlMethodClauseGroup;
+import org.jmlspecs.openjml.JmlTree.JmlMethodClauseSignals;
+import org.jmlspecs.openjml.JmlTree.JmlMethodClauseSignalsOnly;
+import org.jmlspecs.openjml.JmlTree.JmlMethodClauseStoreRef;
+import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
+import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
+import org.jmlspecs.openjml.JmlTree.JmlMethodSig;
+import org.jmlspecs.openjml.JmlTree.JmlMethodSpecs;
+import org.jmlspecs.openjml.JmlTree.JmlModelProgramStatement;
+import org.jmlspecs.openjml.JmlTree.JmlNewClass;
+import org.jmlspecs.openjml.JmlTree.JmlPrimitiveTypeTree;
+import org.jmlspecs.openjml.JmlTree.JmlQuantifiedExpr;
+import org.jmlspecs.openjml.JmlTree.JmlSetComprehension;
+import org.jmlspecs.openjml.JmlTree.JmlSingleton;
+import org.jmlspecs.openjml.JmlTree.JmlSource;
+import org.jmlspecs.openjml.JmlTree.JmlSpecificationCase;
+import org.jmlspecs.openjml.JmlTree.JmlStatement;
+import org.jmlspecs.openjml.JmlTree.JmlStatementDecls;
+import org.jmlspecs.openjml.JmlTree.JmlStatementExpr;
+import org.jmlspecs.openjml.JmlTree.JmlStatementHavoc;
+import org.jmlspecs.openjml.JmlTree.JmlStatementLoop;
+import org.jmlspecs.openjml.JmlTree.JmlStatementLoopExpr;
+import org.jmlspecs.openjml.JmlTree.JmlStatementLoopModifies;
+import org.jmlspecs.openjml.JmlTree.JmlStatementShow;
+import org.jmlspecs.openjml.JmlTree.JmlStatementSpec;
+import org.jmlspecs.openjml.JmlTree.JmlStoreRefArrayRange;
+import org.jmlspecs.openjml.JmlTree.JmlStoreRefKeyword;
+import org.jmlspecs.openjml.JmlTree.JmlStoreRefListExpression;
+import org.jmlspecs.openjml.JmlTree.JmlSwitchStatement;
+import org.jmlspecs.openjml.JmlTree.JmlTuple;
+import org.jmlspecs.openjml.JmlTree.JmlTypeClause;
+import org.jmlspecs.openjml.JmlTree.JmlTypeClauseConditional;
+import org.jmlspecs.openjml.JmlTree.JmlTypeClauseConstraint;
+import org.jmlspecs.openjml.JmlTree.JmlTypeClauseDecl;
+import org.jmlspecs.openjml.JmlTree.JmlTypeClauseExpr;
+import org.jmlspecs.openjml.JmlTree.JmlTypeClauseIn;
+import org.jmlspecs.openjml.JmlTree.JmlTypeClauseInitializer;
+import org.jmlspecs.openjml.JmlTree.JmlTypeClauseMaps;
+import org.jmlspecs.openjml.JmlTree.JmlTypeClauseMonitorsFor;
+import org.jmlspecs.openjml.JmlTree.JmlTypeClauseRepresents;
+import org.jmlspecs.openjml.JmlTree.JmlVariableDecl;
+import org.jmlspecs.openjml.JmlTree.JmlWhileLoop;
+import org.jmlspecs.openjml.JmlTreeUtils;
+import org.jmlspecs.openjml.Main;
+import org.jmlspecs.openjml.Nowarns;
+import org.jmlspecs.openjml.Strings;
+import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.Utils.JmlNotImplementedException;
 import org.jmlspecs.openjml.ext.Arithmetic;
-import static org.jmlspecs.openjml.ext.RecommendsClause.*;
-import static org.jmlspecs.openjml.ext.MiscExtensions.*;
-import static org.jmlspecs.openjml.ext.AssignableClauseExtension.*;
-import static org.jmlspecs.openjml.ext.TypeRWClauseExtension.*;
-import static org.jmlspecs.openjml.ext.ShowStatement.*;
-import static org.jmlspecs.openjml.ext.MiscExpressions.*;
-import static org.jmlspecs.openjml.ext.FrameExpressions.*;
-import static org.jmlspecs.openjml.ext.QuantifiedExpressions.*;
-import static org.jmlspecs.openjml.ext.Operators.*;
-import static org.jmlspecs.openjml.ext.MethodExprClauseExtensions.requiresClauseKind;
-import static org.jmlspecs.openjml.ext.MethodSimpleClauseExtensions.*;
 import org.jmlspecs.openjml.ext.CallableClauseExtension;
 import org.jmlspecs.openjml.ext.EndStatement;
-import org.jmlspecs.openjml.ext.ExpressionExtension;
-import org.jmlspecs.openjml.ext.FunctionLikeExpressions;
 import org.jmlspecs.openjml.ext.Functional;
 import org.jmlspecs.openjml.ext.LineAnnotationClauses;
 import org.jmlspecs.openjml.ext.LineAnnotationClauses.ExceptionLineAnnotation;
-import org.jmlspecs.openjml.vistors.JmlTreeScanner;
-import org.jmlspecs.openjml.vistors.JmlTreeSubstitute;
 import org.jmlspecs.openjml.ext.MethodConditionalClauseExtension;
 import org.jmlspecs.openjml.ext.MethodDeclClauseExtension;
 import org.jmlspecs.openjml.ext.MethodExprClauseExtensions;
 import org.jmlspecs.openjml.ext.MiscExtensions;
 import org.jmlspecs.openjml.ext.Modifiers;
-import org.jmlspecs.openjml.ext.QuantifiedExpressions;
 import org.jmlspecs.openjml.ext.ReachableStatement;
 import org.jmlspecs.openjml.ext.SetStatement;
 import org.jmlspecs.openjml.ext.SignalsClauseExtension;
 import org.jmlspecs.openjml.ext.SignalsOnlyClauseExtension;
 import org.jmlspecs.openjml.ext.TypeExprClauseExtension;
+import org.jmlspecs.openjml.vistors.JmlTreeScanner;
+import org.jmlspecs.openjml.vistors.JmlTreeSubstitute;
 
-import static org.jmlspecs.openjml.ext.SingletonExpressions.*;
-import static org.jmlspecs.openjml.ext.FunctionLikeExpressions.*;
-import static org.jmlspecs.openjml.ext.StateExpressions.*;
-import static org.jmlspecs.openjml.ext.StatementExprExtensions.*;
-import static org.jmlspecs.openjml.ext.TypeExprClauseExtension.*;
-import static org.jmlspecs.openjml.ext.TypeInClauseExtension.*;
-import static org.jmlspecs.openjml.ext.TypeRepresentsClauseExtension.*;
-
-import com.sun.source.tree.*;
-import com.sun.tools.javac.code.*;
+import com.sun.source.tree.ArrayAccessTree;
+import com.sun.source.tree.BinaryTree;
+import com.sun.source.tree.ClassTree;
+import com.sun.source.tree.ConditionalExpressionTree;
+import com.sun.source.tree.ErroneousTree;
+import com.sun.source.tree.IdentifierTree;
+import com.sun.source.tree.InstanceOfTree;
+import com.sun.source.tree.LambdaExpressionTree;
+import com.sun.source.tree.LiteralTree;
+import com.sun.source.tree.MemberSelectTree;
+import com.sun.source.tree.MethodInvocationTree;
+import com.sun.source.tree.NewArrayTree;
+import com.sun.source.tree.NewClassTree;
+import com.sun.source.tree.ParenthesizedTree;
+import com.sun.source.tree.TypeCastTree;
+import com.sun.source.tree.UnaryTree;
+import com.sun.source.tree.VariableTree;
+import com.sun.tools.javac.code.Attribute;
 import com.sun.tools.javac.code.Attribute.Compound;
+import com.sun.tools.javac.code.Flags;
+import com.sun.tools.javac.code.JmlType;
+import com.sun.tools.javac.code.JmlTypes;
+import com.sun.tools.javac.code.Kinds;
 import com.sun.tools.javac.code.Scope;
-import com.sun.tools.javac.code.Symbol.*;
-import com.sun.tools.javac.comp.*;
+import com.sun.tools.javac.code.Symbol;
+import com.sun.tools.javac.code.Symbol.ClassSymbol;
+import com.sun.tools.javac.code.Symbol.MethodSymbol;
+import com.sun.tools.javac.code.Symbol.TypeSymbol;
+import com.sun.tools.javac.code.Symbol.VarSymbol;
+import com.sun.tools.javac.code.Symtab;
+import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.code.Type.ClassType;
+import com.sun.tools.javac.code.TypeTag;
+import com.sun.tools.javac.code.Types;
+import com.sun.tools.javac.comp.AttrContext;
+import com.sun.tools.javac.comp.Enter;
+import com.sun.tools.javac.comp.Env;
+import com.sun.tools.javac.comp.JmlAttr;
+import com.sun.tools.javac.comp.JmlEnter;
 import com.sun.tools.javac.jvm.ClassReader;
-import com.sun.tools.javac.tree.*;
-import com.sun.tools.javac.tree.JCTree.*;
-import com.sun.tools.javac.util.*;
+import com.sun.tools.javac.tree.JCTree;
+import com.sun.tools.javac.tree.JCTree.JCAnnotation;
+import com.sun.tools.javac.tree.JCTree.JCArrayAccess;
+import com.sun.tools.javac.tree.JCTree.JCArrayTypeTree;
+import com.sun.tools.javac.tree.JCTree.JCAssert;
+import com.sun.tools.javac.tree.JCTree.JCAssign;
+import com.sun.tools.javac.tree.JCTree.JCAssignOp;
+import com.sun.tools.javac.tree.JCTree.JCBinary;
+import com.sun.tools.javac.tree.JCTree.JCBlock;
+import com.sun.tools.javac.tree.JCTree.JCBreak;
+import com.sun.tools.javac.tree.JCTree.JCCase;
+import com.sun.tools.javac.tree.JCTree.JCCatch;
+import com.sun.tools.javac.tree.JCTree.JCClassDecl;
+import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
+import com.sun.tools.javac.tree.JCTree.JCConditional;
+import com.sun.tools.javac.tree.JCTree.JCContinue;
+import com.sun.tools.javac.tree.JCTree.JCDoWhileLoop;
+import com.sun.tools.javac.tree.JCTree.JCEnhancedForLoop;
+import com.sun.tools.javac.tree.JCTree.JCErroneous;
+import com.sun.tools.javac.tree.JCTree.JCExpression;
+import com.sun.tools.javac.tree.JCTree.JCExpressionStatement;
+import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
+import com.sun.tools.javac.tree.JCTree.JCForLoop;
+import com.sun.tools.javac.tree.JCTree.JCIdent;
+import com.sun.tools.javac.tree.JCTree.JCIf;
+import com.sun.tools.javac.tree.JCTree.JCImport;
+import com.sun.tools.javac.tree.JCTree.JCInstanceOf;
+import com.sun.tools.javac.tree.JCTree.JCLabeledStatement;
+import com.sun.tools.javac.tree.JCTree.JCLambda;
+import com.sun.tools.javac.tree.JCTree.JCLiteral;
+import com.sun.tools.javac.tree.JCTree.JCMemberReference;
+import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
+import com.sun.tools.javac.tree.JCTree.JCMethodInvocation;
+import com.sun.tools.javac.tree.JCTree.JCModifiers;
+import com.sun.tools.javac.tree.JCTree.JCNewArray;
+import com.sun.tools.javac.tree.JCTree.JCNewClass;
+import com.sun.tools.javac.tree.JCTree.JCParens;
+import com.sun.tools.javac.tree.JCTree.JCPrimitiveTypeTree;
+import com.sun.tools.javac.tree.JCTree.JCReturn;
+import com.sun.tools.javac.tree.JCTree.JCSkip;
+import com.sun.tools.javac.tree.JCTree.JCStatement;
+import com.sun.tools.javac.tree.JCTree.JCSwitch;
+import com.sun.tools.javac.tree.JCTree.JCSynchronized;
+import com.sun.tools.javac.tree.JCTree.JCThrow;
+import com.sun.tools.javac.tree.JCTree.JCTry;
+import com.sun.tools.javac.tree.JCTree.JCTypeApply;
+import com.sun.tools.javac.tree.JCTree.JCTypeCast;
+import com.sun.tools.javac.tree.JCTree.JCTypeParameter;
+import com.sun.tools.javac.tree.JCTree.JCUnary;
+import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
+import com.sun.tools.javac.tree.JCTree.JCWhileLoop;
+import com.sun.tools.javac.tree.JCTree.JCWildcard;
+import com.sun.tools.javac.tree.JCTree.LetExpr;
+import com.sun.tools.javac.tree.JCTree.TypeBoundKind;
+import com.sun.tools.javac.util.Context;
+import com.sun.tools.javac.util.DiagnosticSource;
+import com.sun.tools.javac.util.JCDiagnostic;
 import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
-import com.sun.tools.javac.util.Log.WriterKind;
+import com.sun.tools.javac.util.List;
+import com.sun.tools.javac.util.ListBuffer;
+import com.sun.tools.javac.util.Log;
+import com.sun.tools.javac.util.Name;
+import com.sun.tools.javac.util.Names;
+import com.sun.tools.javac.util.Position;
 
 /** This class translates an attributed Java+JML AST, creating a new 
  * Java-compatible AST that includes assertions to check for all the various 
@@ -1508,6 +1766,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 eresult.type = jmltypes.repSym((JmlType)eresult.type).type;
             }
             saveMapping(tree,eresult);
+        }
+        
+        try (PrintWriter writer = new PrintWriter(new FileOutputStream(new File("C:\\Users\\marloncalvo\\Desktop\\debug\\out_convertexpr.txt"), true))) {
+            writer.println(eresult);
+        } catch (Exception e) {
+            
         }
         return eresult;
     }
@@ -9156,12 +9420,63 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         ListBuffer<JCExpression> newargs = new ListBuffer<JCExpression>();
                         if (!utils.isJMLStatic(calleeMethodSym1)) newargs.add(newThisExpr1);
                         newargs.addAll(trArgs);
+                        
                         JCIdent id = M.at(p).Ident(newMethodName);
                         id.sym = calleeMethodSym1;
                         JCExpression newCall = M.at(p).Apply(List.<JCExpression>nil(),id,newargs.toList());
                         newCall.setType(that.type);
                         JCIdent resultId = M.at(p).Ident(resultSym1);
                         addAssumeEqual(that, Label.METHOD_ASSUME, resultId, newCall);
+                        
+                        try (PrintWriter writer = new PrintWriter(new FileOutputStream(new File("C:\\Users\\marloncalvo\\Desktop\\debug\\out2.txt"), true))) {
+                            try {
+                                writer.println("arr: " +newargs);
+                                writer.println("calle: " + calleeMethodSym1);
+                                if (calleeMethodSym1.owner.toString().startsWith("smtlib.string")) {
+                                    
+                                    JCExpression iden = newargs.toList().get(0);
+//                                    
+                                    ClassSymbol chseq = ClassReader.instance(context).enterClass(names.fromString("java.lang.CharSequence"));
+                                    Symbol chs = utils.findMember(chseq, "charArray");
+//                                    
+//                                    JCExpression array = treeutils.factory.Select(string, chs);
+//                                    array.type = types.makeArrayType(syms.charType);
+//                                    ((JCFieldAccess)array).sym = syms.arrayClass;
+//                                    
+//                                    JCExpression index = treeutils.factory.Literal(TypeTag.INT, 0);
+//                                    index.type = syms.intType;
+//                                    
+//                                    JCExpression indexed = new JmlBBArrayAccess(null, array, index);
+//                                    indexed.type = syms.charType;
+//                                    
+//                                    JCExpression rhs = treeutils.factory.Literal(TypeTag.INT, 0);
+//                                    rhs.type = syms.intType;
+//                                    
+//                                    addAssumeEqual(that, Label.IMPLICIT_ASSUME, indexed, rhs);
+                                    
+                                    JCExpression fa = treeutils.factory.Select(iden, chs);
+                                    JCExpression e = treeutils.makeNotNull(fa.pos,fa);
+                                    fa = treeutils.makeLength(iden,fa);
+                                    JCExpression ee = treeutils.makeEquality(iden.pos, fa, treeutils.makeIntLiteral(iden,0));
+                                    addAssume(that,Label.IMPLICIT_ASSUME,treeutils.makeAnd(iden.pos, e, ee));
+                                    
+                                }
+                            } catch (Exception e2) {
+                                e2.printStackTrace(writer);
+                            }
+                        } catch (Exception e1) {
+                            
+                        }
+                        
+                        
+                        
+//                        try (PrintWriter writer = new PrintWriter(new FileOutputStream(new File("C:\\Users\\marloncalvo\\Desktop\\debug\\out2.txt"), true))) {
+//                            writer.println(calleeMethodSym1);
+//                            writer.println(names.fromString("charAt").);
+//                        } catch (Exception e) {
+//                            
+//                        }
+                        
                     });
                 JCBlock bl = M.at(that.pos).Block(0L,stats);
                 if (!resultSym.type.isPrimitiveOrVoid() && !utils.isPrimitiveType(resultSym.type)) {
@@ -9636,6 +9951,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                                 conditionAssociatedClause = clause;
                                                 log.useSource(clause.sourcefile);
                                                 JCExpression e = convertJML(((JmlMethodClauseExpr)clause).expression, condition, false);
+                                                try (PrintWriter writer = new PrintWriter(new FileOutputStream(new File("C:\\Users\\marloncalvo\\Desktop\\debug\\out5.txt"), true))) {
+                                                    writer.println(e);
+                                                } catch (Exception e1) {
+                                                    
+                                                }
                                                 log.useSource(prevSource);
                                                 addAssume(that,Label.POSTCONDITION,e,clause,clauseSource);
                                             } catch (NoModelMethod e) { // FIXME - need this elsewhere as well, e.g., signals
@@ -12890,6 +13210,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             fa.sym = null;
             eee = fa;
         } else if (translatingJML && s instanceof VarSymbol && attr.isModel(s) && !convertingAssignable && !reps.contains(s)) {
+            
             selected = convertCopy(trexpr);
             boolean var = false;
             // FIXME - why must selected be a JCIdent here and below
@@ -13369,14 +13690,34 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 int len = str.length();
                 ClassSymbol chseq = ClassReader.instance(context).enterClass(names.fromString("java.lang.CharSequence"));
                 Symbol chs = chseq == null ? null : utils.findMember(chseq, "charArray");
+
                 // chs is null if we don't have specs for CharSequence,
                 // or if the charArray model field has been renamed
                 if (chs != null) {
-                    JCExpression fa = M.at(id).Select(id, chs);
+                    JCExpression fa = treeutils.factory.Select(id, chs);
                     JCExpression e = treeutils.makeNotNull(fa.pos,fa);
                     fa = treeutils.makeLength(id,fa);
                     JCExpression ee = treeutils.makeEquality(id.pos, fa, treeutils.makeIntLiteral(id,len));
-                    addAssume(that,Label.IMPLICIT_ASSUME,treeutils.makeAnd(id.pos, e, ee));
+//                    addAssume(that,Label.IMPLICIT_ASSUME,treeutils.makeAnd(id.pos, e, ee));
+                    Main.writer.println(addAssume(that,Label.IMPLICIT_ASSUME,treeutils.makeAnd(id.pos, e, ee)));
+                    
+                    
+                    
+//                    JCExpression array = treeutils.factory.Select(string, chs);
+//                    array.type = types.makeArrayType(syms.charType);
+//                    ((JCFieldAccess)array).sym = syms.arrayClass;
+//                    
+//                    JCExpression index = treeutils.factory.Literal(TypeTag.INT, 0);
+//                    index.type = syms.intType;
+//                    
+//                    JCExpression indexed = new JmlBBArrayAccess(null, array, index);
+//                    indexed.type = syms.charType;
+//                    
+//                    JCExpression rhs = treeutils.factory.Literal(TypeTag.INT, 0);
+//                    rhs.type = syms.intType;
+//                    
+//                    addAssumeEqual(that, Label.IMPLICIT_ASSUME, indexed, rhs);
+//                    
                 }
 
                 // These assumptions are necessary so that String literals are

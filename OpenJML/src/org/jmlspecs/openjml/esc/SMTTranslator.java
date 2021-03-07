@@ -8,6 +8,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.io.Writer;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -36,16 +37,21 @@ import org.smtlib.impl.Factory;
 import org.smtlib.impl.SMTExpr.Numeral;
 import org.smtlib.impl.Script;
 
+import com.sun.source.tree.TreeVisitor;
+import com.sun.source.tree.Tree.Kind;
 import com.sun.tools.javac.code.*;
 import com.sun.tools.javac.code.Type.*;
 import com.sun.tools.javac.model.JavacTypes;
 import com.sun.tools.javac.tree.*;
 import com.sun.tools.javac.tree.JCTree.*;
+import com.sun.tools.javac.tree.JCTree.Visitor;
 import com.sun.tools.javac.util.Context;
+import com.sun.tools.javac.util.JCDiagnostic;
 import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
 import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Name;
 import com.sun.tools.javac.util.Names;
+import com.sun.tools.javac.util.Position;
 
 /** This class translates a BasicBlock program into SMTLIB;
  *  a new instance of the class is needed for each BasicBlock program translated.
@@ -752,7 +758,7 @@ public class SMTTranslator extends JmlTreeScanner {
         
         @Override
         public String toString() {
-            return String.format("var: %s, len: %s, sel: %s", strVar, strLenVar, charSelectStr);
+            return String.format("var: %s\nlen: %s\nsel: %s", strVar, strLenVar, charSelectStr);
         }
     }
     
@@ -777,8 +783,8 @@ public class SMTTranslator extends JmlTreeScanner {
         startCommands.add(c);
         
         if (JmlOption.isOption(context,JmlOption.ESC_TRIGGERS)) {
-            startCommands.add(command(smt,"(set-option :AUTO_CONFIG false)"));
-            startCommands.add(command(smt,"(set-option :smt.MBQI false)"));
+//            startCommands.add(command(smt,"(set-option :AUTO_CONFIG false)"));
+//            startCommands.add(command(smt,"(set-option :smt.MBQI false)"));
         }
         String strseed = JmlOption.value(context, JmlOption.SEED);
         if (strseed != null && !strseed.isEmpty()) try {
@@ -935,84 +941,142 @@ public class SMTTranslator extends JmlTreeScanner {
         addType(syms.exceptionType);
         addType(syms.runtimeExceptionType);
         
-        Queue<ConversionInfo> queue = new ArrayDeque<>();
-        
-        for (int i = 0; i < program.blocks().size(); i++) {
-            
-            BasicProgram.BasicBlock block = program.blocks().get(i);
-            JCStatement stmt = block.statements().size() > 3 ? block.statements().get(2) : null;
-            
+//        Queue<ConversionInfo> queue = new ArrayDeque<>();
+//        
+//        for (int i = 0; i < program.blocks().size(); i++) {
+//            
+//            BasicProgram.BasicBlock block = program.blocks().get(i);
+//            JCStatement stmt = block.statements().size() > 3 ? block.statements().get(2) : null;
+//            
+////            try (PrintWriter writer = new PrintWriter(new FileOutputStream(
+////                    new File("C:\\Users\\marloncalvo\\Desktop\\debug\\out2.txt"), 
+////                true))) {
+////                
+////                for (JCStatement stmt2 : block.statements()) {
+////                    writer.println(stmt2);
+////                }
+////                
+////                writer.println("===");
+////                writer.println(stmt);
+////                writer.println(block);
+////                writer.println("=====================");
+////            } catch (Exception e) {}
+//            
+//            if (stmt != null && stmt.toString().contains("// Assuming postconditions for smtlib.string.at(java.lang.String,int)")) {
+//            
+//                
+//                try (PrintWriter writer = new PrintWriter(new FileOutputStream(
+//                        new File("C:\\Users\\marloncalvo\\Desktop\\debug\\out2.txt"), 
+//                    true))) {
+//                
+////                    for (int j = 0; j < block.followers().size(); j++) {
+////                        writer.println("FOLLOWER: " + block.followers().get(j).id);
+////                    }
+//                    
+////                    writer.println();
+//                    
+//                    JCStatement varStatement = block.statements().get(5);
+//                    JCStatement lengthStatement = block.statements().get(23);
+//                    
+//                    BasicProgram.BasicBlock block2 = null;
+//                    
+//                    i++;
+//                    for (int k = 0; k < 12; k++) {
+//                        block2 = program.blocks().remove(i);
+//                    }
+//                    
+////                    writer.println(block2.unique);
+//                    
+//                    JCStatement selectStatement = block2.statements().get(8);
+//                    JmlVariableDecl decl = (JmlVariableDecl)selectStatement;
+//                    JCBinary bin = (JCBinary)decl.init;
+//                    JmlBBArrayAccess acc = (JmlBBArrayAccess)bin.rhs;
+//                    JCFieldAccess field = (JCFieldAccess)acc.indexed;
+//                    
+////                    writer.println(treeutils.makeArrayElement(-1, , index));
+//                    writer.println(acc.arraysId);
+//                    writer.println(acc.index);
+//                    writer.println(acc.indexed);
+//                    writer.println(field.selected);
+//                    writer.println(field.sym);
+//                    writer.println(field.name);
+//                    
+//                    block.followers = block2.followers;
+//                    for (int k = 0; k < block2.followers.size(); k++) {
+//                        block2.followers.get(k).preceders.remove(block2);
+//                        block2.followers.get(k).preceders.add(block);
+//                    }
+//                    
+//                    while (block.statements.size() > 3) {
+//                        block.statements.remove(3);
+//                    }
+//                    
+//                    
+//                    
+//                    for (int k = 14; k < block2.statements.size(); k++) {
+//                        block.statements.add(block2.statements.get(k));
+//                    }
+//                    
+//                    JmlStatementExpr statement = (JmlStatementExpr)block.statements.get(block.statements.size()-1);
+//                    
+//                    writer.println(statement);
+//                    JCTree.JCBinary binary = (JCTree.JCBinary)statement.expression;
+//                    JCTree.JCLiteral literal = (JCLiteral)binary.rhs;
+//                    
+//                    binary.rhs = new JCLiteral2(TypeTag.INT, block.unique);
+//                    
+////                    writer.println(literal.getClass());
+//                    
+//                    
+////                    writer.println(block);
+//                    
+//                    // ref => String s123
+//                    // s123[i] 
+//                    
+//                    String var = convertExpr(((JmlVariableDecl)varStatement).init).toString();
+//                    String len = convertExpr(((JmlVariableDecl)lengthStatement).init).toString();
+//                    String sel = convertExpr(((JmlVariableDecl)selectStatement).init).toString();
+//                    
+////                    writer.println(var);
+////                    writer.println(len);
+////                    writer.println(sel);
+//
+//                    sel = sel.substring(sel.indexOf("(select"));
+//                    sel = new StringBuilder(sel).reverse().toString();
+//                    sel = sel.replaceFirst("\\d+", "s%");
+//                    sel = new StringBuilder(sel).reverse().toString();
+//                    
+//                    ConversionInfo info = new ConversionInfo();
+//                    info.strVar = var;
+//                    info.strLenVar = len;
+//                    info.charSelectStr = sel;
+//                    
+//                    queue.add(info);
+//                    
+//                } catch (Exception e) {
+//                    try (PrintWriter writer = new PrintWriter(new FileOutputStream(
+//                            new File("C:\\Users\\marloncalvo\\Desktop\\debug\\out2.txt"), 
+//                        true))) {
+//                        e.printStackTrace(writer);
+//                    } catch (FileNotFoundException e1) {
+//                        // TODO Auto-generated catch block
+//                        e1.printStackTrace();
+//                    }
+//                }
+//            }
+//        }
+//        
+//        for (ConversionInfo info : queue) {
 //            try (PrintWriter writer = new PrintWriter(new FileOutputStream(
 //                    new File("C:\\Users\\marloncalvo\\Desktop\\debug\\out2.txt"), 
 //                true))) {
+//                writer.println(info);
+//                writer.println();
+//                writer.println(program);
+//            } catch (Exception e) {
 //                
-//                for (JCStatement stmt2 : block.statements()) {
-//                    writer.println(stmt2);
-//                }
-//                
-//                writer.println("===");
-//                writer.println(stmt);
-//                writer.println(block);
-//                writer.println("=====================");
-//            } catch (Exception e) {}
-            
-            if (stmt != null && stmt.toString().contains("// Assuming postconditions for smtlib.string.at(java.lang.String,int)")) {
-            
-                try (PrintWriter writer = new PrintWriter(new FileOutputStream(
-                        new File("C:\\Users\\marloncalvo\\Desktop\\debug\\out2.txt"), 
-                    true))) {
-                
-                    JCStatement varStatement = block.statements().get(4);
-                    JCStatement lengthStatement = block.statements().get(22);
-                        
-                    i += 13;
-                    
-                    block = program.blocks().get(i);
-                    
-                    JCStatement selectStatement = block.statements().get(6);
-                    
-                    String var = convertExpr(((JmlVariableDecl)varStatement).init).toString();
-                    String len = convertExpr(((JmlVariableDecl)lengthStatement).init).toString();
-                    String sel = convertExpr(((JmlVariableDecl)selectStatement).init).toString();
-                    
-//                    writer.println(var);
-//                    writer.println(len);
-//                    writer.println(sel);
-
-                    sel = sel.substring(sel.indexOf("(select"));
-                    sel = new StringBuilder(sel).reverse().toString();
-                    sel = sel.replaceFirst("\\d+", "s%");
-                    sel = new StringBuilder(sel).reverse().toString();
-                    
-                    ConversionInfo info = new ConversionInfo();
-                    info.strVar = var;
-                    info.strLenVar = len;
-                    info.charSelectStr = sel;
-                    
-                    queue.add(info);
-                    
-                } catch (Exception e) {
-                    try (PrintWriter writer = new PrintWriter(new FileOutputStream(
-                            new File("C:\\Users\\marloncalvo\\Desktop\\debug\\out2.txt"), 
-                        true))) {
-                        e.printStackTrace(writer);
-                    } catch (FileNotFoundException e1) {
-                        // TODO Auto-generated catch block
-                        e1.printStackTrace();
-                    }
-                }
-            }
-        }
-        
-        for (ConversionInfo info : queue) {
-            try (PrintWriter writer = new PrintWriter(new FileOutputStream(
-                    new File("C:\\Users\\marloncalvo\\Desktop\\debug\\out2.txt"), 
-                true))) {
-                writer.println(info);
-            } catch (Exception e) {
-                
-            }
-        }
+//            }
+//        }
         
         // Now translate all the programs background assertions
         for (JCExpression e: program.background()) {
@@ -1085,7 +1149,7 @@ public class SMTTranslator extends JmlTreeScanner {
         
         // add blocks
         for (BasicProgram.BasicBlock b: program.blocks()) {
-            convertBasicBlock(b);
+            convertBasicBlock(smt, b);
         }
         
         {
@@ -1379,7 +1443,7 @@ public class SMTTranslator extends JmlTreeScanner {
     /** Converts a BasicBlock into SMTLIB, adding commands into the
      * current 'commands' list.
      */
-    public void convertBasicBlock(BasicProgram.BasicBlock block) {
+    public void convertBasicBlock(SMT smt, BasicProgram.BasicBlock block) {
         ListIterator<JCStatement> iter = block.statements.listIterator();
         IExpr tail; 
         if (block.followers.isEmpty()) {
@@ -1420,7 +1484,7 @@ public class SMTTranslator extends JmlTreeScanner {
             
         } else {
             
-            tail = convertList2(block.id.toString(),block.statements,tail);
+            tail = convertList2(smt, block.id.toString(),block.statements,tail);
 
         }
 
@@ -1649,7 +1713,15 @@ public class SMTTranslator extends JmlTreeScanner {
 //        return tail;
 //    }
 
-    public IExpr convertList2(String blockid, List<JCStatement> list, IExpr tail) {
+    public static class JCLiteral2 extends JCLiteral {
+
+        protected JCLiteral2(TypeTag typetag, Object value) {
+            super(typetag, value);
+        }
+        
+    }
+    
+    public IExpr convertList2(SMT smt, String blockid, List<JCStatement> list, IExpr tail) {
         ListIterator<JCStatement> iter = list.listIterator();
         Stack<IExpr> stack = new Stack<IExpr>();
         int count = 0;
@@ -1681,14 +1753,52 @@ public class SMTTranslator extends JmlTreeScanner {
                             ex = ((JmlQuantifiedExpr)ex).value;
                             JCExpression lhs = ((JCTree.JCBinary)ex).lhs;
                             JCTree.JCMethodInvocation mcall = (JCTree.JCMethodInvocation)lhs;
-                            JCExpression nm = mcall.meth;
+                            JCExpression nm = mcall.meth;                            
                             JCExpression rhs = ((JCTree.JCBinary)ex).rhs;
                             addFunctionDefinition(nm.toString(),mcall.args,rhs);
+                            
+                            
                         } else {
+                            
                             IExpr exx = convertExpr(s.expression);
                             ISymbol newsym = F.symbol(blockid + "__A" + (++count));
                             commands.add(new C_define_fun(newsym,new LinkedList<IDeclaration>(),boolSort,exx));
                             stack.push(newsym);
+                            
+                            if (s.toString().contains("smtlib_string_at")) {
+                                JmlStatementExpr stmt = (JmlStatementExpr)iter.next();
+                                iter.remove();
+                                
+                                JCBinary binary = (JCBinary)stmt.expression;
+                                JCBinary lhs = (JCBinary)binary.lhs;
+                                JCBinary rhs = (JCBinary)binary.rhs;
+                                
+                                JCExpression array = lhs.lhs;
+                                JCExpression length = rhs.lhs;
+                                
+                                JCMethodInvocation funCall = (JCMethodInvocation)((JCBinary)s.expression).rhs;
+                                
+                                Main.writer.println(funCall.meth);
+                                Main.writer.println(convertExpr(array));
+                                Main.writer.println(convertExpr(length));
+                                
+                                String arrayVar = convertExpr(((JCFieldAccess)array).selected).toString();
+                                String stringVar = arrayVar.substring(0, arrayVar.length()-1) + "__STRING|";
+                                String lengthVar = arrayVar.substring(0, arrayVar.length()-1) + "__LENGTH|";
+                                
+                                String lengthCommand = convertExpr(length).toString();
+                                String selectCommand = convertExpr(array).toString();
+                                String method = funCall.meth.toString();
+                                int index = Integer.valueOf(funCall.args.get(1).toString());
+                                                                
+                                addCommand(smt, String.format("(declare-fun %s () String)", stringVar));
+                                addCommand(smt, String.format("(define-fun %s () Int %s)", lengthVar, lengthCommand));
+                                addCommand(smt, String.format("(assert (= %s (str.len %s)))", lengthVar, stringVar));
+                                addCommand(smt, String.format("(assert (forall ((i Int)) (=> (and (>= i 0) (< i %s)) (= (str.to_code (str.at %s i)) (select (select arrays_char_0 %s) i)))))", lengthVar, stringVar, selectCommand));
+                                addCommand(smt, String.format("(assert (= (%s %s %d) (str.to_code (str.at %s %d))))", method, arrayVar, index, stringVar, index));
+                                
+//                                addCommand(smt, String.format("", args));
+                            }
                         }
                     } else if (s.clauseType == assertClause) {
                         IExpr exx = convertExpr(s.expression);
@@ -1716,7 +1826,9 @@ public class SMTTranslator extends JmlTreeScanner {
                 throw ee;
             } catch (RuntimeException ee) {
                 // There is no recovery from this
-                log.error("jml.internal", "Exception while translating block: " + ee);
+                StringWriter errors = new StringWriter();
+                ee.printStackTrace(new PrintWriter(errors));
+                log.error("jml.internal", "Exception while translating block: " + errors.toString());
                 break;
             }
         }
@@ -2012,7 +2124,6 @@ public class SMTTranslator extends JmlTreeScanner {
                 writer.println("method: " + m.toString());               
             }
             
-
             if (m instanceof JCIdent) {
                 String name = ((JCIdent)m).name.toString();
                 String newname = name;
@@ -2815,6 +2926,13 @@ public class SMTTranslator extends JmlTreeScanner {
     @Override
     public void visitSelect(JCFieldAccess tree) {
         // o.f becomes f[o] where f has sort (Array REF type)
+        
+        try (PrintWriter writer = new PrintWriter(new FileOutputStream(new File("C:\\Users\\marloncalvo\\Desktop\\debug\\visitselectbb.txt"), true))) {
+            writer.println(tree + " " + tree.sym);
+        } catch (Exception e) {
+            
+        }
+        
         if (tree.selected != null) {
             JCExpression object = tree.selected;
             Symbol field = tree.sym;

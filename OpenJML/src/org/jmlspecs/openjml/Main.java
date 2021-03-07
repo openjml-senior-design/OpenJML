@@ -140,6 +140,9 @@ import com.sun.tools.javac.util.Options;
  */
 public class Main extends com.sun.tools.javac.main.Main {
     
+    
+    public static PrintWriter writer;
+    
     public static final int EXIT_CANCELED = -1;
 
     /** The compilation unit context associated with this instance of Main
@@ -282,6 +285,10 @@ public class Main extends com.sun.tools.javac.main.Main {
         throws java.io.IOException {
         super(applicationName,out);
         initialize(out,diagListener,options,args);
+        writer = new PrintWriter(new File("C:\\Users\\marloncalvo\\Desktop\\debug\\visit.txt"));
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            writer.close();
+        }));
     }
     
     protected void initialize( 

@@ -5,6 +5,35 @@
 package org.jmlspecs.openjml.esc;
 
 
+import static org.jmlspecs.openjml.ext.FunctionLikeExpressions.concatID;
+import static org.jmlspecs.openjml.ext.FunctionLikeExpressions.distinctID;
+import static org.jmlspecs.openjml.ext.FunctionLikeExpressions.elemtypeID;
+import static org.jmlspecs.openjml.ext.FunctionLikeExpressions.erasureID;
+import static org.jmlspecs.openjml.ext.FunctionLikeExpressions.nonnullelementsID;
+import static org.jmlspecs.openjml.ext.FunctionLikeExpressions.sameID;
+import static org.jmlspecs.openjml.ext.FunctionLikeExpressions.typeofID;
+import static org.jmlspecs.openjml.ext.Functional.bsensuresID;
+import static org.jmlspecs.openjml.ext.Functional.bsreadsID;
+import static org.jmlspecs.openjml.ext.Functional.bsrequiresID;
+import static org.jmlspecs.openjml.ext.Functional.bswritesID;
+import static org.jmlspecs.openjml.ext.MiscExpressions.typelcID;
+import static org.jmlspecs.openjml.ext.MiscExtensions.everythingKind;
+import static org.jmlspecs.openjml.ext.MiscExtensions.notspecifiedKind;
+import static org.jmlspecs.openjml.ext.ReachableStatement.haltClause;
+import static org.jmlspecs.openjml.ext.SingletonExpressions.exceptionKind;
+import static org.jmlspecs.openjml.ext.StateExpressions.oldID;
+import static org.jmlspecs.openjml.ext.StateExpressions.pastID;
+import static org.jmlspecs.openjml.ext.StateExpressions.preID;
+import static org.jmlspecs.openjml.ext.StatementExprExtensions.assertClause;
+import static org.jmlspecs.openjml.ext.StatementExprExtensions.assertID;
+import static org.jmlspecs.openjml.ext.StatementExprExtensions.assumeClause;
+import static org.jmlspecs.openjml.ext.StatementExprExtensions.assumeID;
+import static org.jmlspecs.openjml.ext.StatementExprExtensions.checkClause;
+import static org.jmlspecs.openjml.ext.StatementExprExtensions.commentClause;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -13,38 +42,84 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
-import java.util.Stack;
 
 import javax.tools.JavaFileObject;
 
 import org.jmlspecs.annotation.NonNull;
-import org.jmlspecs.openjml.*;
-import org.jmlspecs.openjml.JmlTree.*;
-import org.jmlspecs.openjml.esc.BasicProgram;
+import org.jmlspecs.openjml.IJmlClauseKind;
+import org.jmlspecs.openjml.JmlInternalError;
+import org.jmlspecs.openjml.JmlOption;
+import org.jmlspecs.openjml.JmlTree;
+import org.jmlspecs.openjml.JmlTree.JmlBBArrayAccess;
+import org.jmlspecs.openjml.JmlTree.JmlBBArrayAssignment;
+import org.jmlspecs.openjml.JmlTree.JmlBBFieldAccess;
+import org.jmlspecs.openjml.JmlTree.JmlBBFieldAssignment;
+import org.jmlspecs.openjml.JmlTree.JmlBinary;
+import org.jmlspecs.openjml.JmlTree.JmlChoose;
+import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
+import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
+import org.jmlspecs.openjml.JmlTree.JmlGroupName;
+import org.jmlspecs.openjml.JmlTree.JmlImport;
+import org.jmlspecs.openjml.JmlTree.JmlLabeledStatement;
+import org.jmlspecs.openjml.JmlTree.JmlLblExpression;
+import org.jmlspecs.openjml.JmlTree.JmlMethodClauseCallable;
+import org.jmlspecs.openjml.JmlTree.JmlMethodClauseConditional;
+import org.jmlspecs.openjml.JmlTree.JmlMethodClauseDecl;
+import org.jmlspecs.openjml.JmlTree.JmlMethodClauseExpr;
+import org.jmlspecs.openjml.JmlTree.JmlMethodClauseGroup;
+import org.jmlspecs.openjml.JmlTree.JmlMethodClauseSignals;
+import org.jmlspecs.openjml.JmlTree.JmlMethodClauseSignalsOnly;
+import org.jmlspecs.openjml.JmlTree.JmlMethodClauseStoreRef;
+import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
+import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
+import org.jmlspecs.openjml.JmlTree.JmlMethodSig;
+import org.jmlspecs.openjml.JmlTree.JmlMethodSpecs;
+import org.jmlspecs.openjml.JmlTree.JmlModelProgramStatement;
+import org.jmlspecs.openjml.JmlTree.JmlPrimitiveTypeTree;
+import org.jmlspecs.openjml.JmlTree.JmlQuantifiedExpr;
+import org.jmlspecs.openjml.JmlTree.JmlSetComprehension;
+import org.jmlspecs.openjml.JmlTree.JmlSingleton;
+import org.jmlspecs.openjml.JmlTree.JmlSpecificationCase;
+import org.jmlspecs.openjml.JmlTree.JmlStatement;
+import org.jmlspecs.openjml.JmlTree.JmlStatementDecls;
+import org.jmlspecs.openjml.JmlTree.JmlStatementExpr;
+import org.jmlspecs.openjml.JmlTree.JmlStatementHavoc;
+import org.jmlspecs.openjml.JmlTree.JmlStatementLoopExpr;
+import org.jmlspecs.openjml.JmlTree.JmlStatementLoopModifies;
+import org.jmlspecs.openjml.JmlTree.JmlStatementSpec;
+import org.jmlspecs.openjml.JmlTree.JmlStoreRefArrayRange;
+import org.jmlspecs.openjml.JmlTree.JmlStoreRefKeyword;
+import org.jmlspecs.openjml.JmlTree.JmlStoreRefListExpression;
+import org.jmlspecs.openjml.JmlTree.JmlTypeClauseConditional;
+import org.jmlspecs.openjml.JmlTree.JmlTypeClauseConstraint;
+import org.jmlspecs.openjml.JmlTree.JmlTypeClauseDecl;
+import org.jmlspecs.openjml.JmlTree.JmlTypeClauseExpr;
+import org.jmlspecs.openjml.JmlTree.JmlTypeClauseIn;
+import org.jmlspecs.openjml.JmlTree.JmlTypeClauseInitializer;
+import org.jmlspecs.openjml.JmlTree.JmlTypeClauseMaps;
+import org.jmlspecs.openjml.JmlTree.JmlTypeClauseMonitorsFor;
+import org.jmlspecs.openjml.JmlTree.JmlTypeClauseRepresents;
+import org.jmlspecs.openjml.JmlTree.JmlVariableDecl;
+import org.jmlspecs.openjml.Strings;
+import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.esc.BasicProgram.BasicBlock;
-
-import static org.jmlspecs.openjml.ext.FunctionLikeExpressions.*;
-import static org.jmlspecs.openjml.ext.FrameExpressions.*;
-import static org.jmlspecs.openjml.ext.MiscExpressions.*;
-import static org.jmlspecs.openjml.ext.StateExpressions.*;
-import static org.jmlspecs.openjml.ext.SingletonExpressions.*;
-import static org.jmlspecs.openjml.ext.StatementExprExtensions.*;
-import static org.jmlspecs.openjml.ext.ReachableStatement.*;
-import static org.jmlspecs.openjml.ext.MiscExtensions.*;
-import static org.jmlspecs.openjml.ext.Functional.*;
 import org.jmlspecs.openjml.ext.EndStatement;
 import org.jmlspecs.openjml.ext.Operators;
 import org.jmlspecs.openjml.ext.QuantifiedExpressions;
 import org.jmlspecs.openjml.vistors.JmlTreeScanner;
 
-import com.sun.tools.javac.code.*;
+import com.sun.tools.javac.code.Flags;
+import com.sun.tools.javac.code.JmlTypes;
+import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.code.Symbol.TypeSymbol;
 import com.sun.tools.javac.code.Symbol.VarSymbol;
+import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.code.Type.ArrayType;
+import com.sun.tools.javac.code.TypeTag;
 import com.sun.tools.javac.comp.JmlAttr;
-import com.sun.tools.javac.tree.*;
+import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 import com.sun.tools.javac.tree.JCTree.JCArrayAccess;
 import com.sun.tools.javac.tree.JCTree.JCArrayTypeTree;
@@ -63,7 +138,6 @@ import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
 import com.sun.tools.javac.tree.JCTree.JCIdent;
 import com.sun.tools.javac.tree.JCTree.JCImport;
 import com.sun.tools.javac.tree.JCTree.JCInstanceOf;
-import com.sun.tools.javac.tree.JCTree.JCLabeledStatement;
 import com.sun.tools.javac.tree.JCTree.JCLiteral;
 import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
 import com.sun.tools.javac.tree.JCTree.JCMethodInvocation;
@@ -84,10 +158,8 @@ import com.sun.tools.javac.tree.JCTree.LetExpr;
 import com.sun.tools.javac.tree.JCTree.TypeBoundKind;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.ListBuffer;
-import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Log.WriterKind;
 import com.sun.tools.javac.util.Name;
-import com.sun.tools.javac.util.Names;
 import com.sun.tools.javac.util.Position;
 
 /** This class converts a Java AST into basic block form (including DSA and
@@ -1770,6 +1842,19 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         //scan(that.lhs);
         JCExpression left = that.lhs;
         JCExpression right = convertExpr(that.rhs);
+        
+        try (PrintWriter writer = new PrintWriter(new FileOutputStream(new File("C:\\Users\\marloncalvo\\Desktop\\debug\\out2.txt"), true))) {
+            try {
+                writer.println("left: " + left);
+                writer.println("right: " + right);
+            } catch (Exception e2) {
+                e2.printStackTrace(writer);
+            }
+        } catch (Exception e1) {
+            
+        }
+        
+        
         result = doAssignment(that.type,left,right,that.pos,that);
         bimap.put(left, result);
         bimap.putf(that, result);
@@ -1796,8 +1881,19 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             newStatement = addAssume(sp,Label.ASSIGNMENT,expr,currentBlock.statements);
             newExpr = newid;
         } else if (left instanceof JCArrayAccess) {
+
             Type ctype = left.type;
             Type indexType = JmlTypes.instance(context).indexType(((JCArrayAccess)left).indexed.type);
+            try (PrintWriter writer = new PrintWriter(new FileOutputStream(new File("C:\\Users\\marloncalvo\\Desktop\\debug\\out2.txt"), true))) {
+                try {
+                    writer.println("ctype: " + ctype);
+                    writer.println("indexType: " + ((JCArrayAccess)left).indexed.type);
+                } catch (Exception e2) {
+                    e2.printStackTrace(writer);
+                }
+            } catch (Exception e1) {
+                
+            }
             JCIdent arr = getArrayIdent(indexType,ctype,right.pos);
             JCExpression ex = ((JCArrayAccess)left).indexed;
             JCExpression index = ((JCArrayAccess)left).index;
@@ -1815,6 +1911,11 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
 
             // FIXME - set line and source
             newStatement = addAssume(sp,Label.ASSIGNMENT,expr,currentBlock.statements);
+            try (PrintWriter writer = new PrintWriter(new FileOutputStream(new File("C:\\Users\\marloncalvo\\Desktop\\debug\\doAssignment.txt"), true))) {
+                writer.println(newStatement);
+            } catch (Exception e) {
+                
+            }
             newExpr = left;
         } else if (left instanceof JCFieldAccess) {
             VarSymbol sym = (VarSymbol)selectorSym(left);

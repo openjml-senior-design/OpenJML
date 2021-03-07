@@ -5,8 +5,15 @@
 package org.jmlspecs.openjml;
 
 import static com.sun.tools.javac.code.Flags.UNATTRIBUTED;
-import static org.jmlspecs.openjml.ext.EndStatement.*;
+import static org.jmlspecs.openjml.ext.EndStatement.endClause;
+import static org.jmlspecs.openjml.ext.TypeDeclClauseExtension.typedeclClause;
+import static org.jmlspecs.openjml.ext.TypeMapsClauseExtension.mapsClause;
+import static org.jmlspecs.openjml.ext.TypeMonitorsForClauseExtension.monitorsforClause;
+import static org.jmlspecs.openjml.ext.TypeRepresentsClauseExtension.representsClause;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.HashMap;
 import java.util.Map;
@@ -16,16 +23,14 @@ import javax.tools.JavaFileObject;
 import org.jmlspecs.annotation.Nullable;
 import org.jmlspecs.openjml.IJmlClauseKind.ModifierKind;
 import org.jmlspecs.openjml.esc.Label;
-import org.jmlspecs.openjml.ext.*;
+import org.jmlspecs.openjml.ext.CallableClauseExtension;
 import org.jmlspecs.openjml.ext.LineAnnotationClauses.ExceptionLineAnnotation;
+import org.jmlspecs.openjml.ext.Modifiers;
+import org.jmlspecs.openjml.ext.StatementLocationsExtension;
+import org.jmlspecs.openjml.ext.TypeExprClauseExtension;
+import org.jmlspecs.openjml.ext.TypeInClauseExtension;
 import org.jmlspecs.openjml.vistors.IJmlVisitor;
 import org.jmlspecs.openjml.vistors.JmlTreeVisitor;
-
-import static org.jmlspecs.openjml.ext.TypeRepresentsClauseExtension.*;
-import static org.jmlspecs.openjml.ext.TypeInitializerClauseExtension.*;
-import static org.jmlspecs.openjml.ext.TypeMapsClauseExtension.*;
-import static org.jmlspecs.openjml.ext.TypeMonitorsForClauseExtension.*;
-import static org.jmlspecs.openjml.ext.TypeDeclClauseExtension.*;
 
 import com.sun.source.tree.ExpressionTree;
 import com.sun.source.tree.TreeVisitor;
@@ -40,9 +45,8 @@ import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.code.TypeTag;
 import com.sun.tools.javac.comp.AttrContext;
 import com.sun.tools.javac.comp.Env;
-import com.sun.tools.javac.parser.JmlToken;
-import com.sun.tools.javac.parser.Tokens.ITokenKind;
-import com.sun.tools.javac.tree.*;
+import com.sun.tools.javac.tree.EndPosTable;
+import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 import com.sun.tools.javac.tree.JCTree.JCArrayAccess;
 import com.sun.tools.javac.tree.JCTree.JCBinary;
@@ -67,6 +71,7 @@ import com.sun.tools.javac.tree.JCTree.JCTypeParameter;
 import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 import com.sun.tools.javac.tree.JCTree.JCWhileLoop;
 import com.sun.tools.javac.tree.JCTree.Tag;
+import com.sun.tools.javac.tree.TreeMaker;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
 import com.sun.tools.javac.util.List;
@@ -3970,6 +3975,11 @@ public class JmlTree {
         public JCIdent fieldId;
         public JmlBBFieldAccess(JCIdent fieldId, JCExpression selected) {
             super(selected,fieldId.name,fieldId.sym);
+            try (PrintWriter writer = new PrintWriter(new FileOutputStream(new File("C:\\Users\\marloncalvo\\Desktop\\debug\\fieldaccess.txt"), true))) {
+                writer.println(selected);
+            } catch (Exception e) {
+                
+            }
             this.fieldId = fieldId;
             this.type = fieldId.type;
         }

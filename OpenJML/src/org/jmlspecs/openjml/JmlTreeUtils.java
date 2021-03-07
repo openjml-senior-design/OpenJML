@@ -1,12 +1,21 @@
 package org.jmlspecs.openjml;
 
-import static com.sun.tools.javac.code.Flags.BLOCK;
 import static com.sun.tools.javac.code.Flags.FINAL;
 import static com.sun.tools.javac.code.Flags.PUBLIC;
 import static com.sun.tools.javac.code.Flags.STATIC;
-import static com.sun.tools.javac.code.Flags.STRICTFP;
+import static org.jmlspecs.openjml.ext.FunctionLikeExpressions.elemtypeKind;
+import static org.jmlspecs.openjml.ext.FunctionLikeExpressions.typeofKind;
+import static org.jmlspecs.openjml.ext.MiscExpressions.typelcKind;
+import static org.jmlspecs.openjml.ext.StateExpressions.oldKind;
+import static org.jmlspecs.openjml.ext.StateExpressions.pastKind;
+import static org.jmlspecs.openjml.ext.StatementExprExtensions.assertClause;
+import static org.jmlspecs.openjml.ext.StatementExprExtensions.assertID;
+import static org.jmlspecs.openjml.ext.StatementExprExtensions.assumeClause;
+import static org.jmlspecs.openjml.ext.StatementExprExtensions.assumeID;
 
-import java.util.Arrays;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.PrintWriter;
 import java.util.Map;
 
 import javax.lang.model.type.TypeKind;
@@ -18,28 +27,29 @@ import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
 import org.jmlspecs.openjml.JmlTree.JmlStatementExpr;
 import org.jmlspecs.openjml.esc.JmlAssertionAdder;
 import org.jmlspecs.openjml.esc.Label;
-import org.jmlspecs.openjml.ext.MiscExpressions;
 
-import static org.jmlspecs.openjml.ext.FunctionLikeExpressions.*;
-import static org.jmlspecs.openjml.ext.MiscExpressions.*;
-import static org.jmlspecs.openjml.ext.StateExpressions.*;
-import static org.jmlspecs.openjml.ext.StatementExprExtensions.*;
-
-import com.sun.tools.javac.code.*;
+import com.sun.tools.javac.code.Flags;
+import com.sun.tools.javac.code.JmlTypes;
+import com.sun.tools.javac.code.Scope;
+import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.code.Symbol.TypeSymbol;
 import com.sun.tools.javac.code.Symbol.VarSymbol;
+import com.sun.tools.javac.code.Symtab;
+import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.code.Type.ClassType;
 import com.sun.tools.javac.code.Type.IntersectionClassType;
 import com.sun.tools.javac.code.Type.MethodType;
 import com.sun.tools.javac.code.Type.TypeVar;
-import com.sun.tools.javac.comp.AttrContext;
-import com.sun.tools.javac.comp.Env;
+import com.sun.tools.javac.code.TypeTag;
+import com.sun.tools.javac.code.Types;
 import com.sun.tools.javac.comp.JmlAttr;
 import com.sun.tools.javac.comp.JmlResolve;
 import com.sun.tools.javac.jvm.ClassReader;
-import com.sun.tools.javac.tree.*;
+import com.sun.tools.javac.tree.EndPosTable;
+import com.sun.tools.javac.tree.JCTree;
+import com.sun.tools.javac.tree.JCTree.JCArrayAccess;
 import com.sun.tools.javac.tree.JCTree.JCArrayTypeTree;
 import com.sun.tools.javac.tree.JCTree.JCAssign;
 import com.sun.tools.javac.tree.JCTree.JCAssignOp;
@@ -60,7 +70,7 @@ import com.sun.tools.javac.tree.JCTree.JCTypeApply;
 import com.sun.tools.javac.tree.JCTree.JCUnary;
 import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 import com.sun.tools.javac.tree.JCTree.JCWildcard;
-import com.sun.tools.javac.tree.JCTree.Tag;
+import com.sun.tools.javac.tree.TreeInfo;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
 import com.sun.tools.javac.util.List;
@@ -1612,6 +1622,7 @@ public class JmlTreeUtils {
         JCExpression e = factory.Indexed(array,  index);
         e.pos = pos;
         e.type = ((Type.ArrayType)array.type).elemtype;
+
         return e;
     }
     
